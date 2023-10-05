@@ -1,6 +1,6 @@
 import * as apigwv2 from '@aws-cdk/aws-apigatewayv2-alpha'
 import { HttpAlbIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha'
-import { Stack } from 'aws-cdk-lib'
+import { CfnOutput, Stack } from 'aws-cdk-lib'
 import * as ec2 from 'aws-cdk-lib/aws-ec2'
 import * as ecr from 'aws-cdk-lib/aws-ecr'
 import * as ecs from 'aws-cdk-lib/aws-ecs'
@@ -140,10 +140,16 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         })
     }
 
-    new apigwv2.HttpApi(props.stack, 'HttpProxyPrivateApi', {
+    const apiGateway = new apigwv2.HttpApi(props.stack, 'HttpProxyPrivateApi', {
         defaultIntegration: new HttpAlbIntegration(
             'DefaultIntegration',
             service.listener,
         ),
+    })
+
+    new CfnOutput(props.stack, 'ApiGatewayUrl', {
+        value: apiGateway.url!,
+        description: 'The URL of the API Gateway',
+        exportName: 'ApiGatewayUrl',
     })
 }

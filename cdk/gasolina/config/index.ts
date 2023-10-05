@@ -8,8 +8,8 @@ export const CONFIG: {
         availableChainNames: string
     }
 } = {
+    // EDIT: aws account number
     '<aws-account-number>': {
-        // EDIT: aws account number
         projectName: '<project_name>', // EDIT: project_name e.g. foobar-gasolina
         environment: '<environment>', // EDIT: environment e.g. mainnet/testnet
         signerType: 'MNEMONIC',

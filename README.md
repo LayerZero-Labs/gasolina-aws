@@ -7,16 +7,21 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
 - Uploads providers to S3
 - Setup a CloudWatch log group
 - Deploys the Gasolina API app on ECS
-- Sets up a load balancer on Fargate to that has TLS
-- Sets up API Gateway to route to the Gasolina API.
+- Sets up load balancer on Fargate in the VPC private subnet
+- Sets up API Gateway to route to the Gasolina API (we don't expose the load balancer directly, API Gateway offers TLS without the need for a certificate)
 
 ## Step-by-step instructions on setting up the infrastructure and deploying the Gasolina application
+
+### 1. Setup aws valid credentials
+- Use
 
 ### 1. Setting up pre-requisites in AWS account
 - Configure a mnemonic per signer in the Gasolina API. Go to Secret Manager in AWS store and create a new secret for mnemonics and path.
   - You want to store the secret as key-value pair. For a single secret:
   - For the mnemonic use the key: LAYERZERO_WALLET_MNEMONIC
   - For the PATH use the key: LAYERZERO_WALLET_PATH
+
+![img.png](assets/secret-manager-setup.png)
 - Bootstrap CDK if this is your first time using CDK in the AWS account. In `cdk/gasolina/` run:
 ```bash
 cdk bootstrap 
