@@ -1,0 +1,22 @@
+{
+    "definitions": [
+        {
+            "name": "Oracle1WalletName",
+            "byChainType": {
+                "EVM": {
+                    "address": "0xC4c81D5C1851702d27d602aA8ff830A7689F17cc",
+                    "secretName": "Oracle1"
+                }
+            }
+        },
+        {
+            "name": "Oracle2WalletName",
+            "byChainType": {
+                "EVM": {
+                    "address": "0x9c79357189d6aF261691ECF48de9A6bbF30438Fc",
+                    "secretName": "Oracle2"
+                }
+            }
+        }
+    ]
+}

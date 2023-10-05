@@ -1,0 +1,57 @@
+{
+    "ethereum": {
+        "uris": [
+            "https://eth.llamarpc.com",
+            "https://eth-mainnet.public.blastapi.io"
+        ],
+        "quorum": 1
+    },
+    "bsc": {
+        "uris": [
+            "https://binance.llamarpc.com",
+            "https://bsc-dataseed.binance.org",
+            "https://bsc-dataseed1.binance.org",
+            "https://bsc-dataseed2.binance.org"
+        ],
+        "quorum": 1
+    },
+    "avalanche": {
+        "uris": [
+            "https://api.avax.network/ext/bc/C/rpc"
+        ],
+        "quorum": 1
+    },
+    "polygon": {
+        "uris": [
+            "https://polygon.llamarpc.com",
+            "https://polygon-mainnet.public.blastapi.io"
+        ],
+        "quorum": 1
+    },
+    "arbitrum": {
+        "uris": [
+            "https://arbitrum.llamarpc.com",
+            "https://arbitrum-one.public.blastapi.io",
+            "https://rpc.ankr.com/arbitrum"
+        ],
+        "quorum": 1
+    },
+    "optimism": {
+        "uris": [
+            "https://optimism.publicnode.com",
+            "https://mainnet.optimism.io",
+            "https://rpc.ankr.com/optimism",
+            "https://optimism-mainnet.public.blastapi.io"
+
+        ],
+        "quorum": 1
+    },
+    "fantom": {
+        "uris": [
+            "https://rpc.fantom.network",
+            "https://rpc2.fantom.network",
+            "https://rpc3.fantom.network"
+        ],
+        "quorum": 1
+    }
+}
