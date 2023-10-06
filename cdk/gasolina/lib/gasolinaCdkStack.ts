@@ -45,7 +45,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             walletConfigs,
             verifyAndDeliverConfig,
             signerType: config.signerType,
-            ecrRepositoryUri: config.ecrRepositoryUri,
+            ecrRepositoryArn: config.ecrRepositoryArn,
             appVersion: config.appVersion,
             availableChainNames: config.availableChainNames,
         })

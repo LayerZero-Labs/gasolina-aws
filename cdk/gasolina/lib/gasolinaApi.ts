@@ -37,7 +37,7 @@ interface CreateGasolinaServiceProps {
         }
     }
     signerType: string
-    ecrRepositoryUri: string
+    ecrRepositoryArn: string
     appVersion: string
     availableChainNames: string
 }
@@ -91,10 +91,10 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         },
     )
 
-    const repository = ecr.Repository.fromRepositoryName(
+    const repository = ecr.Repository.fromRepositoryArn(
         props.stack,
         `EcrRepository-${serviceName}`,
-        'gasolina',
+        props.ecrRepositoryArn,
     )
 
     // Fargate service
