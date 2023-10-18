@@ -26,16 +26,6 @@ export class GasolinaCdkStack extends LZCdkStack {
             ),
         )
 
-        const verifyAndDeliverConfig = JSON.parse(
-            fs.readFileSync(
-                path.join(
-                    __dirname,
-                    `../config/verifyAndDeliverConfig/${config.environment}.json`,
-                ),
-                'utf8',
-            ),
-        )
-
         createGasolinaService({
             stack: this,
             vpc,
@@ -43,7 +33,9 @@ export class GasolinaCdkStack extends LZCdkStack {
             projectName: config.projectName,
             environment: config.environment,
             walletConfigs,
-            verifyAndDeliverConfig,
+            verifyAndDeliverConfig: {
+                contractAddresses: {},
+            },
             signerType: config.signerType,
             ecrRepositoryArn: config.ecrRepositoryArn,
             appVersion: config.appVersion,
