@@ -1,6 +1,6 @@
 import * as apigwv2 from '@aws-cdk/aws-apigatewayv2-alpha'
 import { HttpAlbIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha'
-import { CfnOutput, Stack } from 'aws-cdk-lib'
+import { CfnOutput, RemovalPolicy, Stack, aws_kms } from 'aws-cdk-lib'
 import * as ec2 from 'aws-cdk-lib/aws-ec2'
 import * as ecr from 'aws-cdk-lib/aws-ecr'
 import * as ecs from 'aws-cdk-lib/aws-ecs'
@@ -40,6 +40,7 @@ interface CreateGasolinaServiceProps {
     ecrRepositoryArn: string
     appVersion: string
     availableChainNames: string
+    kmsNumOfSigners?: number
 }
 
 export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
@@ -47,7 +48,6 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     })
 
-    const walletDefinitions = props.walletConfigs.definitions
     const whitelistedContracts = props.verifyAndDeliverConfig.contractAddresses
 
     workerRole.addManagedPolicy(
@@ -97,6 +97,22 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         props.ecrRepositoryArn,
     )
 
+    // If SIGNER_TYPE is KMS, create the KMS keys. The kmsKeyIds are required to register in the app.
+    const kmsKeys: aws_kms.Key[] = []
+    if (props.signerType === 'KMS') {
+        const numOfSigners = props.kmsNumOfSigners || 1
+        for (let i = 0; i < numOfSigners; i++) {
+            const kmsKey = new aws_kms.Key(props.stack, `KMSGasolinaKey${i}`, {
+                alias: `KMSGasolinaKey${i}`,
+                description: 'HSM-KMS key for signing',
+                keySpec: aws_kms.KeySpec.ECC_SECG_P256K1,
+                keyUsage: aws_kms.KeyUsage.SIGN_VERIFY,
+            })
+            kmsKey.applyRemovalPolicy(RemovalPolicy.RETAIN)
+            kmsKeys.push(kmsKey)
+        }
+    }
+
     // Fargate service
     const service = createApplicationLoadBalancedFargateService(props.stack, {
         layerzeroPrefix: LAYERZERO_PREFIX,
@@ -112,7 +128,6 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         environment: {
             NPM_TOKEN: 'foobar',
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,
-            [ENV_VAR_NAMES.LZ_WALLETS]: JSON.stringify(walletDefinitions),
             SIGNER_TYPE: props.signerType,
             SERVER_PORT: '8081',
             [ENV_VAR_NAMES.LZ_SUPPORTED_ULNS]: JSON.stringify(['V2']),
@@ -123,21 +138,48 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
             [ENV_VAR_NAMES.LZ_VERIFY_AND_DELIVER_WHITELIST]:
                 JSON.stringify(whitelistedContracts),
             [ENV_VAR_NAMES.LZ_AVAILABLE_CHAIN_NAMES]: props.availableChainNames,
+            ...(props.signerType === 'MNEMONIC'
+                ? {
+                      [ENV_VAR_NAMES.LZ_WALLETS]: JSON.stringify(
+                          props.walletConfigs.definitions,
+                      ),
+                  }
+                : {}),
+            ...(props.signerType === 'KMS'
+                ? {
+                      [ENV_VAR_NAMES.LZ_KMS_CLOUD_TYPE]: 'AWS',
+                      [ENV_VAR_NAMES.LZ_KMS_IDS]: kmsKeys
+                          .map((kmsKey) => kmsKey.keyId)
+                          .join(','),
+                  }
+                : {}),
         },
         scaleOnNetwork: true,
     })
 
+    // Grant service permissions
     bucket.grantRead(service.taskDefinition.taskRole)
 
-    for (const walletDefinition of walletDefinitions) {
-        Object.keys(walletDefinition.byChainType).forEach((chainType) => {
-            const secret = secretsmanager.Secret.fromSecretNameV2(
-                props.stack,
-                `${walletDefinition.byChainType[chainType].secretName}Gasolina`,
-                walletDefinition.byChainType[chainType].secretName,
+    if (props.signerType === 'MNEMONIC') {
+        for (const walletDefinition of props.walletConfigs.definitions) {
+            Object.keys(walletDefinition.byChainType).forEach((chainType) => {
+                const secret = secretsmanager.Secret.fromSecretNameV2(
+                    props.stack,
+                    `${walletDefinition.byChainType[chainType].secretName}Gasolina`,
+                    walletDefinition.byChainType[chainType].secretName,
+                )
+                secret.grantRead(service.taskDefinition.taskRole)
+            })
+        }
+    } else if (props.signerType === 'KMS') {
+        for (const kmsKey of kmsKeys) {
+            kmsKey.grant(
+                service.taskDefinition.taskRole,
+                'kms:GetPublicKey',
+                'kms:Sign',
+                'kms:Verify',
             )
-            secret.grantRead(service.taskDefinition.taskRole)
-        })
+        }
     }
 
     const apiGateway = new apigwv2.HttpApi(props.stack, 'HttpProxyPrivateApi', {
