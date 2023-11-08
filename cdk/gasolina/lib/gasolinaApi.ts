@@ -97,6 +97,9 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         props.ecrRepositoryArn,
     )
 
+    if (!['MNEMONIC', 'KMS'].includes(props.signerType)) {
+        throw new Error('Invalid signer type - Use either MNEMONIC or KMS')
+    }
     // If SIGNER_TYPE is KMS, create the KMS keys. The kmsKeyIds are required to register in the app.
     const kmsKeys: aws_kms.Key[] = []
     if (props.signerType === 'KMS') {
@@ -161,6 +164,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
     bucket.grantRead(service.taskDefinition.taskRole)
 
     if (props.signerType === 'MNEMONIC') {
+        // If MNEMONIC grant service read access to secrets manager that you uploaded independently
         for (const walletDefinition of props.walletConfigs.definitions) {
             Object.keys(walletDefinition.byChainType).forEach((chainType) => {
                 const secret = secretsmanager.Secret.fromSecretNameV2(
@@ -172,6 +176,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
             })
         }
     } else if (props.signerType === 'KMS') {
+        // If KMS grant service ability to get publicKey, sign and verify
         for (const kmsKey of kmsKeys) {
             kmsKey.grant(
                 service.taskDefinition.taskRole,
