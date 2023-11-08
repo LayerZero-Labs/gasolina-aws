@@ -18,11 +18,12 @@ The Gasolina image is currently hosted in a private ECR repository. In order to 
 ### 2. Setup aws valid credentials
 - Authenticate with AWS CLI with a valid method: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html
 
-### 3. Setting up pre-requisites in AWS account
-- Configure a mnemonic per signer in the Gasolina API. Go to Secret Manager in AWS store and create a new secret for mnemonics and path.
+### 3. Decide whether you want to use your own mnemonics or HSM-backed AWS KMS keys
+- If you want to use your own mnemonics you can configure a mnemonic per signer in the Gasolina API. Go to Secret Manager in AWS store and create a new secret for mnemonics and path.
   - You want to store the secret as key-value pair. For a single secret:
   - For the mnemonic use the key: LAYERZERO_WALLET_MNEMONIC
   - For the PATH use the key: LAYERZERO_WALLET_PATH
+- If you want to use AWS KMS (backed by HSM), you can set this in your config and all key creation and registration into the application is done for you.
 
 ![img.png](assets/secret-manager-setup.png)
 - Bootstrap CDK if this is your first time using CDK in the AWS account. In `cdk/gasolina/` run:
@@ -33,9 +34,12 @@ cdk bootstrap
 ### 4. Configuration of infra and application
 - In `cdk/gasolina/config/index.ts` in the CONFIG object:
   - Configure the AWS account number for the key of the object.
-  - Your unique project name `projectName` (this is used for your s3 bucket which needs to be globally unique on AWS)
-  - The environment your API will be pointing to on layerzero (mainnet/testnet)
-  - The chains your Gasolina app supports `availableChainNames` in comma seperated format e.g. `ethereum,bsc,avalanche`
+  - `projectName`: Your unique project name (this is used for your s3 bucket which needs to be globally unique on AWS)
+  - `environment`: The environment your API will be pointing to on layerzero (mainnet/testnet)
+  - `availableChainNames`: The chains your Gasolina app supports in comma seperated format e.g. `ethereum,bsc,avalanche`
+  - `signerType`: Either `MNEMONIC` if you are using mnemonics stored in secret manager or `KMS` if you want CDK to set up asymmetric keys backed by HSM for you and register these keys into the Gasolina app.
+    - If `MNEMONIC`, the number of signers registered will be based on your wallet definitions in `walletConfig/<environment>.json`
+    - If `KMS`, you can optionally set `kmsNumOfSigners` in CONFIG. This value will create and register multiple keys into the same api
 - In `cdk/gasolina/config/providers/<environment>/providers.json` 
   - Configure all the RPC providers that you listed for the `availableChainNames` in the previous step.
 - In `cdk/gasolina/config/walletConfig/<environment>.json`
@@ -57,9 +61,6 @@ Make an HTTP GET request to the ApiGatewayUrl at the following endpoint:
 curl https://<ApiGatewayUrl>/signer-info?chainName=ethereum
 ```
 If successful, you should see the signers registered on Gasolina API.
-
-## Coming soon:
-- HSM setup on AWS
 
 ## Troubleshooting
 ### 1. CDK Deploy failed and cannot redeploy because resource already exists

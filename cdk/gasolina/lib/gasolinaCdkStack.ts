@@ -36,10 +36,11 @@ export class GasolinaCdkStack extends LZCdkStack {
             verifyAndDeliverConfig: {
                 contractAddresses: {},
             },
-            signerType: config.signerType,
             ecrRepositoryArn: config.ecrRepositoryArn,
             appVersion: config.appVersion,
             availableChainNames: config.availableChainNames,
+            signerType: config.signerType,
+            kmsNumOfSigners: config.kmsNumOfSigners,
         })
     }
 }
