@@ -1,0 +1,58 @@
+{
+    "ethereum": {
+        "uris": [
+            "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+            "https://gateway.tenderly.co/public/goerli",
+            "https://eth-goerli.public.blastapi.io",
+            "https://rpc.ankr.com/eth_goerli"
+        ],
+        "quorum": 1
+    },
+    "bsc": {
+        "uris": [
+            "https://bsc-testnet.blockpi.network/v1/rpc/public",
+            "https://data-seed-prebsc-2-s2.bnbchain.org:8545"
+        ],
+        "quorum": 1
+    },
+    "avalanche": {
+        "uris": [
+            "https://ava-testnet.public.blastapi.io/ext/bc/C/rpc",
+            "https://avalanche-fuji.blockpi.network/v1/rpc/public",
+            "https://api.avax-test.network/ext/bc/C/rpc"
+        ],
+        "quorum": 1
+    },
+    "polygon": {
+        "uris": [
+            "https://rpc.ankr.com/polygon_mumbai",
+            "https://polygon-mumbai.g.alchemy.com/v2/demo",
+            "https://gateway.tenderly.co/public/polygon-mumbai"
+        ],
+        "quorum": 1
+    },
+    "arbitrum": {
+        "uris": [
+            "https://arbitrum-goerli.blockpi.network/v1/rpc/public",
+            "https://goerli-rollup.arbitrum.io/rpc",
+            "https://arbitrum-goerli.public.blastapi.io"
+        ],
+        "quorum": 1
+    },
+    "optimism": {
+        "uris": [
+            "https://goerli.optimism.io",
+            "https://optimism-goerli.gateway.tenderly.co",
+            "https://opt-goerli.g.alchemy.com/v2/demo"
+
+        ],
+        "quorum": 1
+    },
+    "fantom": {
+        "uris": [
+            "https://rpc.testnet.fantom.network/",
+            "https://fantom.api.onfinality.io/public"
+        ],
+        "quorum": 1
+    }
+}
