@@ -25,6 +25,8 @@ The Gasolina image is currently hosted in a private ECR repository. In order to 
   - For the PATH use the key: LAYERZERO_WALLET_PATH
 - If you want to use AWS KMS (backed by HSM), you can set this in your config and all key creation and registration into the application is done for you.
 
+- In the root directory of the project, run `yarn` to install all dependencies.
+
 ![img.png](assets/secret-manager-setup.png)
 - Bootstrap CDK if this is your first time using CDK in the AWS account. In `cdk/gasolina/` run:
 ```bash
@@ -53,7 +55,7 @@ In `cdk/gasolina/` run:
 ```bash
 cdk deploy
 ```
-After the deploy is done, in the stdout you will see `Oracle.ApiGatewayUrl = <URL>`. 
+After the deployment is done, in the stdout you will see `Oracle.ApiGatewayUrl = <URL>`. Send this URL over to LayerZeroLabs.
 
 ### 6. Testing
 Make an HTTP GET request to the ApiGatewayUrl at the following endpoint:
@@ -62,6 +64,27 @@ curl https://<ApiGatewayUrl>/signer-info?chainName=ethereum
 ```
 If successful, you should see the signers registered on Gasolina API.
 
+To test the API against a sample message, in the root directory run:
+```bash
+ts-node scripts/testDeployment -u <ApiGatewayUrl> -e <environment>
+```
+- A successful response will look like:
+```bash
+--- [200] Successful request ---
+Response: {
+  signatures: [
+    {
+      signature: '<signature>',
+      address: '<address>'
+    },
+    {
+      signature: '<signature>',
+      address: '<address>'
+    }
+  ]
+}
+
+```
 ## Troubleshooting
 ### 1. CDK Deploy failed and cannot redeploy because resource already exists
 - Some resources have deletion projection policies. You will need to delete these resources before you can redeploy:
