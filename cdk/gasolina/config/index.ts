@@ -2,7 +2,7 @@ export const CONFIG: {
     [account: string]: {
         projectName: string
         environment: string
-        ecrRepositoryArn: string
+        gasolinaRepo: string
         appVersion: string
         availableChainNames: string
         signerType: string
@@ -11,8 +11,7 @@ export const CONFIG: {
 } = {
     // EDIT: aws account number
     '<aws-account-number>': {
-        ecrRepositoryArn:
-            'arn:aws:ecr:us-east-1:438003944538:repository/gasolina',
+        gasolinaRepo: 'public.ecr.aws/t7p6p5n2/gasolina',
         appVersion: 'latest', // EDIT: version and tag of the gasolina image
         projectName: '<project_name>', // EDIT: project_name e.g. foobar-gasolina
         environment: '<environment>', // EDIT: environment e.g. mainnet/testnet

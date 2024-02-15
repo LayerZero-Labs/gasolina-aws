@@ -37,7 +37,7 @@ interface CreateGasolinaServiceProps {
         }
     }
     signerType: string
-    ecrRepositoryArn: string
+    gasolinaRepo: string
     appVersion: string
     availableChainNames: string
     kmsNumOfSigners?: number
@@ -91,12 +91,6 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         },
     )
 
-    const repository = ecr.Repository.fromRepositoryArn(
-        props.stack,
-        `EcrRepository-${serviceName}`,
-        props.ecrRepositoryArn,
-    )
-
     if (!['MNEMONIC', 'KMS'].includes(props.signerType)) {
         throw new Error('Invalid signer type - Use either MNEMONIC or KMS')
     }
@@ -121,9 +115,8 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         layerzeroPrefix: LAYERZERO_PREFIX,
         vpc: props.vpc,
         cluster: props.cluster,
-        dockerImage: ecs.ContainerImage.fromEcrRepository(
-            repository,
-            props.appVersion,
+        dockerImage: ecs.ContainerImage.fromRegistry(
+            `${props.gasolinaRepo}:${props.appVersion}`,
         ),
         serviceName,
         workerRole: workerRole,
