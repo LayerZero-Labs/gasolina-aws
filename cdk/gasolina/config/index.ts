@@ -11,7 +11,7 @@ export const CONFIG: {
 } = {
     // EDIT: aws account number
     '<aws-account-number>': {
-        gasolinaRepo: 'public.ecr.aws/t7p6p5n2/gasolina',
+        gasolinaRepo: 'us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina',
         appVersion: 'latest', // EDIT: version and tag of the gasolina image
         projectName: '<project_name>', // EDIT: project_name e.g. foobar-gasolina
         environment: '<environment>', // EDIT: environment e.g. mainnet/testnet
