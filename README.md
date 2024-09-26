@@ -53,6 +53,73 @@ cdk bootstrap
         -   Configure the `address` of the signer
         -   Configure the `secretName` of that signer. This is used by the application to fetch the mnemonics when it needs to sign the payload
 
+### [Optional] Setup Extra Context Verification
+
+You can enhance message verification by adding your own custom rules.
+
+To implement this, setup an API that would be called by gasolina whenever a message is received. The API will receive the complete context of the message, including additional onchain data, and will return a boolean value indicating whether the message can be signed.
+
+API Input:
+
+```typescript
+{
+    sentEvent: { // PacketSent event, emitted from the Endpoint contract
+        lzMessageId: {
+            pathwayId: {
+                srcEid: number // Soure chain eid (https://github.com/LayerZero-Labs/LayerZero-v2/blob/main/packages/layerzero-v2/evm/protocol/contracts/EndpointV2.sol#L23)
+                dstEid: number
+                sender: string // Sender oapp address on source chain
+                receiver: string // Receiver oapp address on destination chain
+                srcChainName: string // Source Chain Name
+                dstChainName: string // Destination Chain Name
+            }
+            nonce: number
+            ulnSendVersion: UlnVersion
+        }
+        guid: string // onchain guid
+        message: string
+        options: {
+            // Adapter Params set on the source transaction
+            lzReceive?: {
+                gas: string
+                value: string
+            }
+            nativeDrop?: {
+                amount: string
+                receiver: string
+            }[]
+            compose?: {
+                index: number
+                gas: string
+                value: string
+            }[]
+            ordered?: boolean
+        }
+        payload?: string
+        sendLibrary?: string
+        onChainEvent: { // Transaction on the source chain
+            chainName: string
+            txHash: string
+            blockHash: string
+            blockNumber: number
+        }
+    }
+    from: string // Address of the sender
+    blockConfirmation: number
+    expiration: number
+    ulnVersion: UlnVersion
+}
+```
+
+API Output:
+
+-   The API is expected to return a boolean value indicating whether the message can be signed.
+
+Setup:
+
+-   In `cdk/gasolina/config/index.ts` in the CONFIG object:
+    -   Set `extraContextGasolinaUrl` to the URL of your API
+
 ### 4. CDK Deploy
 
 Setup infrastructure and deploy the Gasolina application.

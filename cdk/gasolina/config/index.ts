@@ -7,6 +7,7 @@ export const CONFIG: {
         availableChainNames: string
         signerType: string
         kmsNumOfSigners?: number
+        extraContextRequestUrl?: string
     }
 } = {
     // EDIT: aws account number
@@ -19,5 +20,6 @@ export const CONFIG: {
             'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // EDIT: all the chains gasolina will support that matches those listed in providers
         signerType: 'MNEMONIC', // EDIT: MNEMONIC or KMS
         // kmsNumOfSigners: 1, // EDIT: only required if signerType is KMS
+        // extraContextRequestUrl: undefined // EDIT: optional
     },
 }

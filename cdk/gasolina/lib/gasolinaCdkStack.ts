@@ -41,6 +41,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             availableChainNames: config.availableChainNames,
             signerType: config.signerType,
             kmsNumOfSigners: config.kmsNumOfSigners,
+            extraContextRequestUrl: config.extraContextRequestUrl,
         })
     }
 }
