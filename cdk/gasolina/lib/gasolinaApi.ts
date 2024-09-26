@@ -41,6 +41,7 @@ interface CreateGasolinaServiceProps {
     appVersion: string
     availableChainNames: string
     kmsNumOfSigners?: number
+    extraContextRequestUrl?: string
 }
 
 export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
@@ -147,6 +148,12 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
                       [ENV_VAR_NAMES.LZ_KMS_IDS]: kmsKeys
                           .map((kmsKey) => kmsKey.keyId)
                           .join(','),
+                  }
+                : {}),
+            ...(props.extraContextRequestUrl
+                ? {
+                      [ENV_VAR_NAMES.LZ_EXTRA_CONTEXT_REQUEST_URL]:
+                          props.extraContextRequestUrl,
                   }
                 : {}),
         },
