@@ -107,4 +107,22 @@ export const messages = [
         self: undefined,
         skipVId: false,
     },
+    {
+        lzMessageId: {
+            srcUAAddress: '4x3oQtX4MhjTKGBeXDZbtTSLZ9cUWo5waN2UChAuthtS',
+            dstUAAddress: '0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34',
+            srcChainId: '30168',
+            dstChainId: '30101',
+            srcChainName: 'solana',
+            dstChainName: 'ethereum',
+            nonce: 89,
+        },
+        srcTxHash:
+            '26rxD3GM61MbhcGdjHtftJ9tK73UNHFoNzR3RrQ5ANTtqjqDLuu5z88F8ZmaJioNiX4wN4MzvAhVb814WRuwU6D7',
+        expiration: 1728922271,
+        blockConfirmation: 32,
+        ulnVersion: 'V302',
+        self: undefined,
+        skipVId: false,
+    },
 ]
