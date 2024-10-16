@@ -125,6 +125,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         environment: {
             NPM_TOKEN: 'foobar',
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,
+            [ENV_VAR_NAMES.LZ_CDK_DEPLOY_REGION]: props.stack.region,
             SIGNER_TYPE: props.signerType,
             SERVER_PORT: '8081',
             [ENV_VAR_NAMES.LZ_SUPPORTED_ULNS]: JSON.stringify(['V2']),
