@@ -117,11 +117,27 @@ const createTaskDefinition = (
                 {
                     containerPort: 25888,
                     hostPort: 25888,
-                    protocol: ecs.Protocol.UDP,
+                    protocol: ecs.Protocol.TCP,
                 },
             ],
+            healthCheck: {
+                command: [
+                    'CMD',
+                    '/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent',
+                    '--version',
+                ],
+                interval: Duration.seconds(30),
+                timeout: Duration.seconds(5),
+                retries: 3,
+                startPeriod: Duration.seconds(60),
+            },
         },
     )
+
+    workerTaskDefinition.addContainerDependencies({
+        container: cloudwatchAgentTaskDefinition,
+        condition: ecs.ContainerDependencyCondition.HEALTHY,
+    })
 
     cloudwatchAgentTaskDefinition.addUlimits({
         hardLimit: 65535,
