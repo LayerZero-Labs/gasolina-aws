@@ -31,11 +31,6 @@ interface CreateGasolinaServiceProps {
             }
         }[]
     }
-    verifyAndDeliverConfig: {
-        contractAddresses: {
-            [chainName: string]: string
-        }
-    }
     signerType: string
     gasolinaRepo: string
     appVersion: string
@@ -48,8 +43,6 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
     const workerRole = new iam.Role(props.stack, `${serviceName}Role`, {
         assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     })
-
-    const whitelistedContracts = props.verifyAndDeliverConfig.contractAddresses
 
     workerRole.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -133,8 +126,6 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
             [ENV_VAR_NAMES.LZ_METRIC_NAMESPACE]: `${LAYERZERO_PREFIX}-${serviceName.toLowerCase()}`,
             [ENV_VAR_NAMES.LZ_METRIC_LOG_GROUP_NAME]: `${serviceName.toLocaleLowerCase()}-metric-log`,
             [ENV_VAR_NAMES.LZ_PROVIDER_CONFIG_TYPE]: 'S3',
-            [ENV_VAR_NAMES.LZ_VERIFY_AND_DELIVER_WHITELIST]:
-                JSON.stringify(whitelistedContracts),
             [ENV_VAR_NAMES.LZ_AVAILABLE_CHAIN_NAMES]: props.availableChainNames,
             ...(props.signerType === 'MNEMONIC'
                 ? {

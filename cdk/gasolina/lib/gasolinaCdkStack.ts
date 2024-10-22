@@ -33,9 +33,6 @@ export class GasolinaCdkStack extends LZCdkStack {
             projectName: config.projectName,
             environment: config.environment,
             walletConfigs,
-            verifyAndDeliverConfig: {
-                contractAddresses: {},
-            },
             gasolinaRepo: config.gasolinaRepo,
             appVersion: config.appVersion,
             availableChainNames: config.availableChainNames,
