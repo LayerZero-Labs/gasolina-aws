@@ -105,9 +105,6 @@ API Input:
         }
     }
     from: string // Address of the sender
-    blockConfirmation: number
-    expiration: number
-    ulnVersion: UlnVersion
 }
 ```
 
