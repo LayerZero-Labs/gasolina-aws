@@ -12,9 +12,19 @@ export class GasolinaCdkStack extends LZCdkStack {
         super(scope, id, props)
 
         const config = CONFIG[this.account]
+        if (!config) {
+            throw new Error(`No config found for account: ${this.account}`)
+        }
 
         const vpc = this.createVpc()
         const cluster = this.createFargateEcsCluster(vpc)
+
+        if (!config.environment) {
+            throw new Error('environment not set in config')
+        }
+        if (!fs.existsSync(path.join(__dirname, `../config/walletConfig/${config.environment}.json`))) {
+            throw new Error(`walletConfig file not found for environment: ${config.environment}`)
+        }
 
         const walletConfigs = JSON.parse(
             fs.readFileSync(

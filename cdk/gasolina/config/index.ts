@@ -11,11 +11,11 @@ export const CONFIG: {
     }
 } = {
     // EDIT: aws account number
-    '<aws-account-number>': {
+    '528757792527': {
         gasolinaRepo: 'us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina',
         appVersion: 'latest', // EDIT: version and tag of the gasolina image
-        projectName: '<project_name>', // EDIT: project_name e.g. foobar-gasolina
-        environment: '<environment>', // EDIT: environment e.g. mainnet/testnet
+        projectName: 'canary-dvn', // EDIT: project_name e.g. foobar-gasolina
+        environment: 'mainnet', // EDIT: environment e.g. mainnet/testnet
         availableChainNames:
             'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // EDIT: all the chains gasolina will support that matches those listed in providers
         signerType: 'MNEMONIC', // EDIT: MNEMONIC or KMS

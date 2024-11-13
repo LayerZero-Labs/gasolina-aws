@@ -30,14 +30,19 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
 
 ![img.png](assets/secret-manager-setup.png)
 
+-   Edit `cdk/gasolina/bin/cdk.ts` and set the account and region
 -   Bootstrap CDK if this is your first time using CDK in the AWS account. In `cdk/gasolina/` run:
 
 ```bash
-cdk bootstrap
+cdk bootstrap --profile {...}
 ```
 
-### 3. Configuration of infra and application
+Note that the profile name depends on your local AWS config. Make sure to select the correct one based on the AWS
+account you wish to operate on. You can also omit the --profile flag if you are using the default profile or if your
+bash session has exported the AWS_PROFILE environment variable.
 
+### 3. Configuration of infra and application
+-   In `cdk/gasolina/lib/cdk-stack.ts` check whether the VPC cidr is acceptable, else update as needed
 -   In `cdk/gasolina/config/index.ts` in the CONFIG object:
     -   Configure the AWS account number for the key of the object.
     -   `projectName`: Your unique project name (this is used for your s3 bucket which needs to be globally unique on AWS)
@@ -123,7 +128,7 @@ Setup infrastructure and deploy the Gasolina application.
 In `cdk/gasolina/` run:
 
 ```bash
-cdk deploy
+cdk deploy --profile {...}
 ```
 
 After the deployment is done, in the stdout you will see `Oracle.ApiGatewayUrl = <URL>`. Send this URL over to LayerZeroLabs.
@@ -136,12 +141,22 @@ Make an HTTP GET request to the ApiGatewayUrl at the following endpoint:
 curl https://<ApiGatewayUrl>/signer-info?chainName=ethereum
 ```
 
+Example:
+```bash
+curl https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com/signer-info?chainName=ethereum
+```
+
 If successful, you should see the signers registered on Gasolina API.
 
 To test the API against a sample message, in the root directory run:
 
 ```bash
 ts-node scripts/testDeployment -u <ApiGatewayUrl> -e <environment>
+```
+
+Example:
+```bash
+ts-node scripts/testDeployment -u https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com -e mainnet
 ```
 
 -   A successful response will look like:
@@ -170,3 +185,10 @@ Response: {
 -   Some resources have deletion projection policies. You will need to delete these resources before you can redeploy:
     -   the CloudWatch log group: `GasolinaMetricLogGroup`
     -   the S3 bucket: `providerconfigs-<projectName>-<environment>-gasolina`
+
+## Custom domain
+
+Make sure you have a certificate in AWS ACM for the correct domain.
+Head over ot the API gateway service, find the one associated with Gasolina and create a new custom domain.
+Finally create an A record as an alias to that API gateway API in route53.
+Potential future improvement: automate these steps in the cdk. Not worth yet as we performed this as a one time setup.

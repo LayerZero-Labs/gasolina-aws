@@ -29,9 +29,7 @@ const createTaskDefinition = (
         stack,
         `${props.serviceName}ServiceLogGroup`,
         {
-            logGroupName: `${
-                props.layerzeroPrefix
-            }-${props.serviceName.toLocaleLowerCase()}`,
+            logGroupName: `${props.layerzeroPrefix}-${props.serviceName.toLocaleLowerCase()}`,
         },
     )
 
@@ -42,7 +40,7 @@ const createTaskDefinition = (
         `${props.serviceName}TaskDefinition`,
         {
             compatibility: ecs.Compatibility.FARGATE,
-            cpu: '4096',
+            cpu: '2048',
             memoryMiB: '8192',
             taskRole: props.workerRole,
         },
@@ -68,7 +66,7 @@ const createTaskDefinition = (
                 streamPrefix: 'container',
             }),
             memoryLimitMiB: 6000,
-            cpu: 3096,
+            cpu: 1400,
             stopTimeout: Duration.seconds(15),
             portMappings: [
                 {
@@ -105,7 +103,7 @@ const createTaskDefinition = (
                 'public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest',
             ),
             memoryLimitMiB: 512,
-            cpu: 512,
+            cpu: 400,
             environment: {
                 CW_CONFIG_CONTENT: '{"logs":{"metrics_collected":{"emf":{}}}}',
             },
