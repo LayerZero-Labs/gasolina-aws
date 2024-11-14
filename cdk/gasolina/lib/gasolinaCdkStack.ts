@@ -44,11 +44,11 @@ export class GasolinaCdkStack extends LZCdkStack {
             environment: config.environment,
             walletConfigs,
             gasolinaRepo: config.gasolinaRepo,
-            appVersion: config.appVersion,
             availableChainNames: config.availableChainNames,
             signerType: config.signerType,
             kmsNumOfSigners: config.kmsNumOfSigners,
             extraContextRequestUrl: config.extraContextRequestUrl,
+            dataDogLogDomain: config.dataDogLogDomain,
         })
     }
 }
