@@ -33,10 +33,10 @@ interface CreateGasolinaServiceProps {
     }
     signerType: string
     gasolinaRepo: string
-    appVersion: string
     availableChainNames: string
     kmsNumOfSigners?: number
     extraContextRequestUrl?: string
+    dataDogLogDomain?: string
 }
 
 export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
@@ -110,7 +110,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         vpc: props.vpc,
         cluster: props.cluster,
         dockerImage: ecs.ContainerImage.fromRegistry(
-            `${props.gasolinaRepo}:${props.appVersion}`,
+            `${props.gasolinaRepo}`,
         ),
         serviceName,
         workerRole: workerRole,
@@ -150,6 +150,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
                 : {}),
         },
         scaleOnNetwork: true,
+        dataDogLogDomain: props.dataDogLogDomain,
     })
 
     // Grant service permissions

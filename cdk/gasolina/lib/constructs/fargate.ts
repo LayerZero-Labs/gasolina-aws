@@ -5,6 +5,9 @@ import * as ecs from 'aws-cdk-lib/aws-ecs'
 import * as ecsPatern from 'aws-cdk-lib/aws-ecs-patterns'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as logs from 'aws-cdk-lib/aws-logs'
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
+import { ContainerDependency } from 'aws-cdk-lib/aws-ecs/lib/container-definition'
+
 
 export interface CreateFargateProps {
     layerzeroPrefix: string
@@ -19,6 +22,7 @@ export interface CreateFargateProps {
     serviceName: string
     environment: { [key: string]: string }
     scaleOnNetwork?: boolean
+    dataDogLogDomain?: string
 }
 
 const createTaskDefinition = (
@@ -32,8 +36,17 @@ const createTaskDefinition = (
             logGroupName: `${props.layerzeroPrefix}-${props.serviceName.toLocaleLowerCase()}`,
         },
     )
-
     serviceLogGroup.applyRemovalPolicy(RemovalPolicy.DESTROY)
+
+    // useful for debugging FireLens (which propagates service logs to DataDog)
+    const firelensLogGroup = new logs.LogGroup(
+        stack,
+        `${props.serviceName}FirelensLogGroup`,
+        {
+            logGroupName: `${props.layerzeroPrefix}-${props.serviceName.toLowerCase()}-firelens`,
+            removalPolicy: RemovalPolicy.DESTROY,
+        }
+    );
 
     const taskDefinition = new ecs.TaskDefinition(
         stack,
@@ -46,43 +59,111 @@ const createTaskDefinition = (
         },
     )
 
-    const workerTaskDefinition = taskDefinition.addContainer(
-        `${props.serviceName}Worker`,
-        {
-            image: props.dockerImage,
-            environment: props.environment,
-            healthCheck: {
-                command: [
-                    'CMD-SHELL',
-                    'curl -f http://localhost:8081/ || exit 1',
-                ],
-                interval: Duration.seconds(60),
-                retries: 6,
-                startPeriod: Duration.seconds(60),
-                timeout: Duration.seconds(20),
-            },
-            logging: ecs.LogDriver.awsLogs({
-                logGroup: serviceLogGroup,
-                streamPrefix: 'container',
-            }),
-            memoryLimitMiB: 6000,
-            cpu: 1400,
-            stopTimeout: Duration.seconds(15),
-            portMappings: [
-                {
-                    containerPort: 8081,
-                    hostPort: 8081,
-                    protocol: ecs.Protocol.TCP,
-                },
-            ],
-        },
-    )
+    const datadogApiKey = secretsmanager.Secret.fromSecretNameV2(
+        stack,
+        'DatadogApiKey',
+        'datadog/api-key'
+    );
+    datadogApiKey.grantRead(taskDefinition.taskRole)
 
-    workerTaskDefinition.addUlimits({
-        hardLimit: 65535,
-        name: ecs.UlimitName.NOFILE,
-        softLimit: 65535,
-    })
+    const workerProps = {
+        image: props.dockerImage,
+        environment: props.environment,
+        healthCheck: {
+            command: [
+                'CMD-SHELL',
+                'curl -f http://localhost:8081/ || exit 1',
+            ],
+            interval: Duration.seconds(30),
+            retries: 6,
+            startPeriod: Duration.seconds(10),
+            timeout: Duration.seconds(10),
+        },
+        logging: ecs.LogDriver.awsLogs({
+            logGroup: serviceLogGroup,
+            streamPrefix: 'container',
+        }),
+        memoryLimitMiB: 6000,
+        cpu: 1400,
+        stopTimeout: Duration.seconds(15),
+        portMappings: [
+            {
+                containerPort: 8081,
+                hostPort: 8081,
+                protocol: ecs.Protocol.TCP,
+            },
+        ],
+    }
+
+    if (props.dataDogLogDomain) {
+        workerProps.logging = new ecs.FireLensLogDriver({
+            options: {
+                "Name": "datadog",
+                'apikey': datadogApiKey.secretValueFromJson('key').unsafeUnwrap(),
+                'Host': props.dataDogLogDomain,
+                'dd_service': props.serviceName,
+                'dd_source': 'fargate',
+                'dd_message_key': 'log',
+                'dd_tags': `env:${props.environment.ENV}`,
+                'TLS': 'on',
+                'provider': 'ecs',
+            },
+        })
+    }
+
+    const workerTaskDefinition = taskDefinition.addContainer(
+        `${props.serviceName}Worker`, workerProps
+    )
+    const deps: ContainerDependency[] = []
+
+    if (props.dataDogLogDomain) {
+        const firelensContainer = taskDefinition.addFirelensLogRouter('firelens',
+            {
+                essential: true,
+                image: ecs.ContainerImage.fromRegistry(
+                    'amazon/aws-for-fluent-bit:stable',
+                ),
+                firelensConfig: {
+                    type: ecs.FirelensLogRouterType.FLUENTBIT,
+                    options: {
+                        enableECSLogMetadata: true,
+                    }
+                },
+                memoryLimitMiB: 128,
+                cpu: 100,
+                // FireLens internal logs go to CloudWatch
+                logging: ecs.LogDriver.awsLogs({
+                    streamPrefix: 'firelens',
+                    logGroup: firelensLogGroup,
+                }),
+                // Dummy port mappings to satisfy CDK, but they aren't really necessary
+                portMappings: [
+                    {
+                        containerPort: 8125,  // Dummy port
+                        protocol: ecs.Protocol.TCP
+                    }
+                ],
+                // Fake health check for FireLens
+                healthCheck: {
+                    command: [
+                        'CMD-SHELL',
+                        'echo healthy',
+                    ],
+                    interval: Duration.seconds(30),
+                    timeout: Duration.seconds(5),
+                    retries: 3,
+                    startPeriod: Duration.seconds(10),
+                },
+            }
+        );
+        firelensContainer.addUlimits({
+            hardLimit: 65535,
+            name: ecs.UlimitName.NOFILE,
+            softLimit: 65535,
+        })
+        deps.push({ container: firelensContainer, condition: ecs.ContainerDependencyCondition.HEALTHY })
+    }
+
 
     const cwAgentLogGroup = new logs.LogGroup(
         stack,
@@ -102,8 +183,8 @@ const createTaskDefinition = (
             image: ecs.ContainerImage.fromRegistry(
                 'public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest',
             ),
-            memoryLimitMiB: 512,
-            cpu: 400,
+            memoryLimitMiB: 384,
+            cpu: 300,
             environment: {
                 CW_CONFIG_CONTENT: '{"logs":{"metrics_collected":{"emf":{}}}}',
             },
@@ -131,10 +212,14 @@ const createTaskDefinition = (
             },
         },
     )
+    deps.push({ container: cloudwatchAgentTaskDefinition, condition: ecs.ContainerDependencyCondition.HEALTHY })
 
-    workerTaskDefinition.addContainerDependencies({
-        container: cloudwatchAgentTaskDefinition,
-        condition: ecs.ContainerDependencyCondition.HEALTHY,
+    workerTaskDefinition.addContainerDependencies(...deps)
+
+    workerTaskDefinition.addUlimits({
+        hardLimit: 65535,
+        name: ecs.UlimitName.NOFILE,
+        softLimit: 65535,
     })
 
     cloudwatchAgentTaskDefinition.addUlimits({
@@ -216,7 +301,8 @@ export const createApplicationLoadBalancedFargateService = (
         {
             cluster: props.cluster,
             taskDefinition,
-            minHealthyPercent: 50,
+            minHealthyPercent: 100,
+            maxHealthyPercent: 200,
             taskSubnets: props.vpc.selectSubnets({
                 subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
             }),
