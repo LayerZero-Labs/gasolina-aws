@@ -1,6 +1,20 @@
-Outputs:
+========
+Outputs
+========
+
+Prod
+-----
 Oracle.ApiGatewayUrl = https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com/
 Oracle.GasolinaFargateLBLoadBalancerDNS8814C281 = internal-Oracle-Gasol-GVhQ7lbgHHSu-598877534.eu-west-2.elb.amazonaws.com
 Oracle.GasolinaFargateLBServiceURL62DD0397 = http://internal-Oracle-Gasol-GVhQ7lbgHHSu-598877534.eu-west-2.elb.amazonaws.com
 Stack ARN:
 arn:aws:cloudformation:eu-west-2:528757792527:stack/Oracle/e5d75350-987e-11ef-a110-0abbe09ccdef
+
+Dev
+-----
+Outputs:
+Oracle.ApiGatewayUrl = https://42l7ghzk2a.execute-api.eu-west-2.amazonaws.com/
+Oracle.GasolinaFargateLBLoadBalancerDNS8814C281 = internal-Oracle-Gasol-QSRfjNguRcdv-999551706.eu-west-2.elb.amazonaws.com
+Oracle.GasolinaFargateLBServiceURL62DD0397 = http://internal-Oracle-Gasol-QSRfjNguRcdv-999551706.eu-west-2.elb.amazonaws.com
+Stack ARN:
+arn:aws:cloudformation:eu-west-2:891612567040:stack/Oracle/dbe916d0-a6a7-11ef-a544-028fc5027b2f

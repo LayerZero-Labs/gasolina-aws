@@ -24,6 +24,8 @@ interface CreateGasolinaServiceProps {
     projectName: string
     stage: string
     environment: string
+    minReplicas: number
+    maxReplicas?: number
     walletConfigs: {
         definitions: {
             name: string
@@ -115,7 +117,8 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         ),
         serviceName,
         workerRole: workerRole,
-        minimumTaskCount: 2,
+        minimumTaskCount: props.minReplicas,
+        maximumTaskCount: props.maxReplicas,
         stage: props.stage,
         environment: {
             NPM_TOKEN: 'foobar',
