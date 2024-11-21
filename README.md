@@ -24,6 +24,7 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
     -   You want to store the secret as key-value pair. For a single secret:
     -   For the mnemonic use the key: LAYERZERO_WALLET_MNEMONIC
     -   For the PATH use the key: LAYERZERO_WALLET_PATH
+    -   Call the secret accordingly to the walletConfig/{stage}/{environment}.json file
 -   If you want to use AWS KMS (backed by HSM), you can set this in your config and all key creation and registration into the application is done for you.
 
 -   In the root directory of the project, run `yarn` to install all dependencies.
@@ -34,7 +35,12 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
 -   Bootstrap CDK if this is your first time using CDK in the AWS account. In `cdk/gasolina/` run:
 
 ```bash
-cdk bootstrap --profile {...}
+cdk bootstrap --profile canary-nonprod --output cdk.nonprod
+```
+
+For the production account:
+```bash
+cdk bootstrap --profile canary-prod --output cdk.prod
 ```
 
 Note that the profile name depends on your local AWS config. Make sure to select the correct one based on the AWS
@@ -128,7 +134,12 @@ Setup infrastructure and deploy the Gasolina application.
 In `cdk/gasolina/` run:
 
 ```bash
-cdk deploy --profile {...}
+cdk deploy --profile canary-nonprod --output cdk.nonprod
+```
+
+For the production account:
+```bash
+cdk deploy --profile canary-prod --output cdk.prod
 ```
 
 After the deployment is done, in the stdout you will see `Oracle.ApiGatewayUrl = <URL>`. Send this URL over to LayerZeroLabs.

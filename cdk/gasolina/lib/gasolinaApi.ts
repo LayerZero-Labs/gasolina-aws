@@ -22,6 +22,7 @@ interface CreateGasolinaServiceProps {
     vpc: ec2.Vpc
     cluster: ecs.Cluster
     projectName: string
+    stage: string
     environment: string
     walletConfigs: {
         definitions: {
@@ -115,6 +116,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         serviceName,
         workerRole: workerRole,
         minimumTaskCount: 2,
+        stage: props.stage,
         environment: {
             NPM_TOKEN: 'foobar',
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,

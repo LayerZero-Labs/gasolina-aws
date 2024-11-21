@@ -21,6 +21,7 @@ export interface CreateFargateProps {
     maxHealthyPercent?: number
     serviceName: string
     environment: { [key: string]: string }
+    stage: string
     scaleOnNetwork?: boolean
     dataDogLogDomain?: string
 }
@@ -104,7 +105,7 @@ const createTaskDefinition = (
                 'dd_service': props.serviceName,
                 'dd_source': 'fargate',
                 'dd_message_key': 'log',
-                'dd_tags': `env:${props.environment.ENV}`,
+                'dd_tags': `env:${props.stage}`,
                 'TLS': 'on',
                 'provider': 'ecs',
             },

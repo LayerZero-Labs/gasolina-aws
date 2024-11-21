@@ -9,4 +9,6 @@ dist
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+cdk.nonprod
+cdk.prod
 cdk.context.json

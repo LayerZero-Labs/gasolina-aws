@@ -22,7 +22,7 @@ export class GasolinaCdkStack extends LZCdkStack {
         if (!config.environment) {
             throw new Error('environment not set in config')
         }
-        if (!fs.existsSync(path.join(__dirname, `../config/walletConfig/${config.environment}.json`))) {
+        if (!fs.existsSync(path.join(__dirname, `../config/walletConfig/${config.stage}/${config.environment}.json`))) {
             throw new Error(`walletConfig file not found for environment: ${config.environment}`)
         }
 
@@ -30,7 +30,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             fs.readFileSync(
                 path.join(
                     __dirname,
-                    `../config/walletConfig/${config.environment}.json`,
+                    `../config/walletConfig/${config.stage}/${config.environment}.json`,
                 ),
                 'utf8',
             ),
@@ -41,6 +41,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             vpc,
             cluster,
             projectName: config.projectName,
+            stage: config.stage,
             environment: config.environment,
             walletConfigs,
             gasolinaRepo: config.gasolinaRepo,
