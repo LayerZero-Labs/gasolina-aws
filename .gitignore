@@ -12,3 +12,6 @@ cdk.out
 cdk.nonprod
 cdk.prod
 cdk.context.json
+
+# sensitive config
+cdk/gasolina/config/providers/*

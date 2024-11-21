@@ -71,18 +71,27 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         },
     )
 
+    // check if the providers file exists
+    const providerConfigDir = path.join(
+        __dirname,
+        '../config/providers',
+        props.stage,
+        props.environment,
+    )
+    const providerConfigFile = path.join(providerConfigDir, 'providers.json')
+    if (!require('fs').existsSync(providerConfigFile)) {
+        throw new Error(
+            `The expected provider configs folder does not exist: ${providerConfigFile}`,
+        )
+    }
+
+    // upload the contents of the provider config dir to the s3 bucket
     new s3Deployment.BucketDeployment(
         props.stack,
         `ProviderConfigsBucketDeployment-${serviceName}`,
         {
             sources: [
-                s3Deployment.Source.asset(
-                    path.join(
-                        __dirname,
-                        '../config/providers',
-                        props.environment,
-                    ),
-                ),
+                s3Deployment.Source.asset(providerConfigDir),
             ],
             destinationBucket: bucket,
         },
@@ -112,9 +121,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         layerzeroPrefix: LAYERZERO_PREFIX,
         vpc: props.vpc,
         cluster: props.cluster,
-        dockerImage: ecs.ContainerImage.fromRegistry(
-            `${props.gasolinaRepo}`,
-        ),
+        dockerImage: ecs.ContainerImage.fromRegistry(`${props.gasolinaRepo}`),
         serviceName,
         workerRole: workerRole,
         minimumTaskCount: props.minReplicas,

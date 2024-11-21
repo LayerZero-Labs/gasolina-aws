@@ -5,6 +5,12 @@ import { getSampleMessage } from './utils'
 
 const args = parse(
     {
+        stage: {
+            alias: 's',
+            type: String,
+            defaultValue: 'prod',
+            description: 'The stage of the deployment (default: prod)',
+        },
         environment: {
             alias: 'e',
             type: String,
@@ -29,7 +35,7 @@ const args = parse(
 )
 
 const main = async () => {
-    const sampleMessage = getSampleMessage(args.environment)
+    const sampleMessage = getSampleMessage(args.stage, args.environment)
     console.log(`--- Sending request to ${args.url} ---`)
     console.log(`Sample request:`, sampleMessage)
     try {

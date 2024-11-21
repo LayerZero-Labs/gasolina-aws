@@ -2,13 +2,14 @@ import { mainnetMessages, testnetMessages } from '../samples'
 
 /**
  * Get a sample message based on the samples that your configuration supports
+ * @param stage - the stage of the deployment
  * @param environment - the environment: mainnet or testnet
  */
-export const getSampleMessage = (environment: string) => {
+export const getSampleMessage = (stage: string, environment: string) => {
     if (!['mainnet', 'testnet'].includes(environment)) {
         throw new Error('environment must be mainnet or testnet')
     }
-    const providers = require(`../../cdk/gasolina/config/providers/${environment}/providers.json`)
+    const providers = require(`../../cdk/gasolina/config/providers/${stage}/${environment}/providers.json`)
     const availableChainNames = Object.keys(providers)
     const sampleMessages =
         environment === 'mainnet' ? mainnetMessages : testnetMessages

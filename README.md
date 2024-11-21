@@ -57,8 +57,11 @@ bash session has exported the AWS_PROFILE environment variable.
     -   `signerType`: Either `MNEMONIC` if you are using mnemonics stored in secret manager or `KMS` if you want CDK to set up asymmetric keys backed by HSM for you and register these keys into the Gasolina app.
         -   If `MNEMONIC`, the number of signers registered will be based on your wallet definitions in `walletConfig/<environment>.json`
         -   If `KMS`, you can optionally set `kmsNumOfSigners` in CONFIG. This value will create and register multiple keys into the same api
--   In `cdk/gasolina/config/providers/<environment>/providers.json`
-    -   Configure all the RPC providers that you listed for the `availableChainNames` in the previous step.
+-   In `cdk/gasolina/config/providers`
+    - Add the providers config in stage/environment in a providers.json file. Eg: `cdk/gasolina/config/providers/nonprod/mainnet/providers.json` 
+    - Check out `cdk/gasolina/config/examples` for the expected file format
+    - Note that the `cdk/gasolina/providers` folder is in gitignore as the files may contain the API keys for the node providers
+    - Note: we keep the providers files in 1password. Also, they can be checked any time on S3, as there's a bucket specifically for those
 -   In `cdk/gasolina/config/walletConfig/<environment>.json`
     -   Under `definitions`, add a Wallet Definition per Signer in Gasolina API that you registered in Secret Manager in the pre-requisites step.
         -   Configure the `address` of the signer
@@ -154,7 +157,7 @@ curl https://<ApiGatewayUrl>/signer-info?chainName=ethereum
 
 Example:
 ```bash
-curl https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com/signer-info?chainName=ethereum
+curl https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com/signer-info\?chainName=ethereum
 ```
 
 If successful, you should see the signers registered on Gasolina API.
@@ -162,12 +165,12 @@ If successful, you should see the signers registered on Gasolina API.
 To test the API against a sample message, in the root directory run:
 
 ```bash
-ts-node scripts/testDeployment -u <ApiGatewayUrl> -e <environment>
+ts-node scripts/testDeployment -u <ApiGatewayUrl> -e <environment> -s <stage>
 ```
 
 Example:
 ```bash
-ts-node scripts/testDeployment -u https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com -e mainnet
+ts-node scripts/testDeployment -u https://f5dju15cz3.execute-api.eu-west-2.amazonaws.com -e mainnet -s nonprod
 ```
 
 -   A successful response will look like:
