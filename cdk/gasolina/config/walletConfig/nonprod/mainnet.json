@@ -4,8 +4,8 @@
             "name": "TestOracleWallet",
             "byChainType": {
                 "EVM": {
-                    "address": "0x6d695bDb416274d37fb877f5f46A3F20c9343D80",
-                    "secretName": "nonprod/gasolina"
+                    "address": "0xb2C816Bb77b6e1C6d57b987BbB48BA3150D72352",
+                    "secretName": "dev/gasolina"
                 }
             }
         }
