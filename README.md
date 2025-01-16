@@ -163,6 +163,22 @@ Response: {
 
 ```
 
+## Getting signatures to change DVN onchain configs
+
+### Setup
+Depending on the environment (i.e testnet/mainnet), fill in the appropriate information regarding DVN addresses and KMS key ids in the `scripts/configChangePayloads/data` folder. The file names should be `dvn-addresses-<environment>.json` and `kms-keyids-<environment>.json` respectively. Take a look at existing testnet examples in the `scripts/configChangePayloads/data` folder to see how they need to be filled.
+### Signatures for changing quorum
+```
+ts-node scripts/configChangePayloads/createSetQuorumSignatures.ts -e <environment> -c <comma-separated-chain-names> --oldQuorum <number> --newQuorum <number>
+# e.g. ts-node scripts/configChangePayloads/createSetQuorumSignatures.ts -e testnet -c bsc,avalanche,fantom --oldQuorum 2 --newQuorum 1
+```
+### Signatures for adding/removing a signer
+When adding a signer, you need to set `--shouldRevoke` arg as 0, when removing, you need to set it as 1.
+```
+ts-node scripts/configChangePayloads/createSetQuorumSignatures.ts -e <environment> -c <comma-separated-chain-names> --q <quorum> --signerAddress <string> --shouldRevoke <0 or 1>
+# e.g. ts-node scripts/configChangePayloads/createAddOrRemoveSignerSignatures.ts -e testnet -c bsc,avalanche,fantom -q 1 --signerAddress 0x85e4857b7f15bbbbbc72d933a6357d3c22a0bbc7 --shouldRevoke 1
+```
+
 ## Troubleshooting
 
 ### 1. CDK Deploy failed and cannot redeploy because resource already exists
