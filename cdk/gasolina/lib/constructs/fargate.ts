@@ -54,8 +54,8 @@ const createTaskDefinition = (
         `${props.serviceName}TaskDefinition`,
         {
             compatibility: ecs.Compatibility.FARGATE,
-            cpu: '2048',
-            memoryMiB: '8192',
+            cpu: '1024',
+            memoryMiB: '2048',
             taskRole: props.workerRole,
         },
     )
@@ -75,17 +75,19 @@ const createTaskDefinition = (
                 'CMD-SHELL',
                 'curl -f http://localhost:8081/ || exit 1',
             ],
-            interval: Duration.seconds(30),
+            interval: Duration.seconds(10),
             retries: 6,
-            startPeriod: Duration.seconds(10),
-            timeout: Duration.seconds(10),
+            startPeriod: Duration.seconds(5),
+            timeout: Duration.seconds(5),
         },
         logging: ecs.LogDriver.awsLogs({
             logGroup: serviceLogGroup,
             streamPrefix: 'container',
         }),
-        memoryLimitMiB: 6000,
-        cpu: 1400,
+        memoryLimitMiB: 1600,
+        // uncomment to enable ECS exec for debugging
+        // enableExecuteCommand: true,
+        cpu: 700,
         stopTimeout: Duration.seconds(15),
         portMappings: [
             {

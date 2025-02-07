@@ -47,6 +47,12 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     })
 
+    workerRole.addManagedPolicy( // Add ECR read-only permissions
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+            'AmazonEC2ContainerRegistryReadOnly'
+        )
+    );
+
     workerRole.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName(
             'service-role/AmazonECSTaskExecutionRolePolicy',
@@ -116,12 +122,21 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         }
     }
 
+    // Add Docker secret
+    // see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
+    // required fields: 'username' and 'password'
+    const dockerSecret = secretsmanager.Secret.fromSecretNameV2(
+        props.stack,
+        'DockerSecret',
+        'docker/credentials'
+    );
+
     // Fargate service
     const service = createApplicationLoadBalancedFargateService(props.stack, {
         layerzeroPrefix: LAYERZERO_PREFIX,
         vpc: props.vpc,
         cluster: props.cluster,
-        dockerImage: ecs.ContainerImage.fromRegistry(`${props.gasolinaRepo}`),
+        dockerImage: ecs.ContainerImage.fromRegistry(`${props.gasolinaRepo}`, {credentials: dockerSecret}),
         serviceName,
         workerRole: workerRole,
         minimumTaskCount: props.minReplicas,
@@ -132,6 +147,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,
             [ENV_VAR_NAMES.LZ_CDK_DEPLOY_REGION]: props.stack.region,
             SIGNER_TYPE: props.signerType,
+            APP_PROFILE: props.stage == 'prod' ? 'prod' : 'dev',
             SERVER_PORT: '8081',
             [ENV_VAR_NAMES.LZ_SUPPORTED_ULNS]: JSON.stringify(['V2']),
             [ENV_VAR_NAMES.LZ_PROVIDER_BUCKET]: bucket.bucketName,

@@ -206,3 +206,13 @@ Make sure you have a certificate in AWS ACM for the correct domain.
 Head over ot the API gateway service, find the one associated with Gasolina and create a new custom domain.
 Finally create an A record as an alias to that API gateway API in route53.
 Potential future improvement: automate these steps in the cdk. Not worth yet as we performed this as a one time setup.
+
+## Troubleshooting
+
+If the CDK ever yields an error such as "config not found for account ...", make sure you are logged in with the correct
+profile. If you are, you might have to...
+```shell
+aws sso logout
+rm -rf ~/.aws/sso/cache/*
+```
+...and log in again.

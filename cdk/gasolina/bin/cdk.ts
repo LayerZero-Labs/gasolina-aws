@@ -5,6 +5,7 @@ import 'source-map-support/register'
 import { GasolinaCdkStack } from '../lib/gasolinaCdkStack'
 
 const app = new cdk.App()
+
 new GasolinaCdkStack(app, 'Oracle', {
     /* If you don't specify 'env', this stack will be environment-agnostic.
      * Account/Region-dependent features and context lookups will not work,
@@ -19,7 +20,7 @@ new GasolinaCdkStack(app, 'Oracle', {
 
     /* Uncomment the next line if you know exactly what Account and Region you
      * want to deploy the stack to. */
-    // env: { account: '528757792527', region: 'eu-west-2' },
+    // env: { account: '891612567040', region: 'eu-west-2' },
 
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 })
