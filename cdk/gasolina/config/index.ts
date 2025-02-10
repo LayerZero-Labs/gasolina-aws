@@ -29,7 +29,7 @@ export const CONFIG: {
         // extraContextRequestUrl: undefined // EDIT: optional
         // Optionally add a log intake server for datadog. Note: this is based on the region of your account. Check it out carefully.
         // Remove to disable datadog integration - if enabling, remember to create an AWS Secret Manager entry with name and datadog/api-key and a key called "key" with the DataDog API key
-        // dataDogLogDomain: 'http-intake.logs.datadoghq.eu',
+        dataDogLogDomain: 'http-intake.logs.datadoghq.eu',
         minReplicas: 2,
     },
     // EDIT: aws account number
@@ -46,7 +46,7 @@ export const CONFIG: {
         // extraContextRequestUrl: undefined // EDIT: optional
         // Optionally add a long intake server for datadog. Note: this is based on the region of your account. Check it out carefully.
         // Remove to disable datadog integration - if enabling, remember to create an AWS Secret Manager entry with name and datadog/api-key and a key called "key" with the DataDog API key
-        // dataDogLogDomain: 'http-intake.logs.datadoghq.eu',
+        dataDogLogDomain: 'http-intake.logs.datadoghq.eu',
         minReplicas: 1,
         maxReplicas: 1,
     },

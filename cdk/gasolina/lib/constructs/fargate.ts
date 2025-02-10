@@ -84,7 +84,7 @@ const createTaskDefinition = (
             logGroup: serviceLogGroup,
             streamPrefix: 'container',
         }),
-        memoryLimitMiB: 1600,
+        memoryLimitMiB: 1400,
         // uncomment to enable ECS exec for debugging
         // enableExecuteCommand: true,
         cpu: 700,
@@ -187,7 +187,7 @@ const createTaskDefinition = (
                 'public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest',
             ),
             memoryLimitMiB: 384,
-            cpu: 300,
+            cpu: 200,
             environment: {
                 CW_CONFIG_CONTENT: '{"logs":{"metrics_collected":{"emf":{}}}}',
             },
