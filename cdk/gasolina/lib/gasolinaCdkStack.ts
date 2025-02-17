@@ -49,7 +49,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             signerType: config.signerType,
             kmsNumOfSigners: config.kmsNumOfSigners,
             extraContextRequestUrl: config.extraContextRequestUrl,
-            dataDogLogDomain: config.dataDogLogDomain,
+            dataDogDomain: config.dataDogDomain,
             minReplicas: config.minReplicas,
             maxReplicas: config.maxReplicas,
         })

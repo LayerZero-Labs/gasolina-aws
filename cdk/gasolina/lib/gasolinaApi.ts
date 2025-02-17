@@ -39,7 +39,7 @@ interface CreateGasolinaServiceProps {
     availableChainNames: string
     kmsNumOfSigners?: number
     extraContextRequestUrl?: string
-    dataDogLogDomain?: string
+    dataDogDomain?: string
 }
 
 export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
@@ -143,6 +143,14 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         maximumTaskCount: props.maxReplicas,
         stage: props.stage,
         environment: {
+            ...(props.dataDogDomain && {
+                TRACING_ENABLED: 'true',
+                PROFILING_ENABLED: 'false',
+                DD_AGENT_HOST: 'localhost',
+                DD_TRACE_AGENT_PORT: '8126',
+                DD_DOGSTATSD_PORT: '8125',
+                // DD_TRACE_DEBUG: 'true',
+            }),
             NPM_TOKEN: 'foobar',
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,
             [ENV_VAR_NAMES.LZ_CDK_DEPLOY_REGION]: props.stack.region,
@@ -178,7 +186,7 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
                 : {}),
         },
         scaleOnNetwork: true,
-        dataDogLogDomain: props.dataDogLogDomain,
+        dataDogDomain: props.dataDogDomain,
     })
 
     // Grant service permissions
