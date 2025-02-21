@@ -1,4 +1,6 @@
-const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn';
+// Canary implementation
+const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:dfdae660cf239f92b048d8793fa0acca86725fcaec99693be5016a4aaefa7c3d';
+// Layer0 implementation was us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0
 
 export const CONFIG: {
     [account: string]: {
@@ -17,8 +19,7 @@ export const CONFIG: {
 } = {
     // EDIT: aws account number
     '528757792527': {
-        // gasolinaRepo: 'us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0',
-        gasolinaRepo: `${GASOLINA_REPO}@sha256:7313cedf1e3b3468c4cf1c2a1de012b003d7ae9a3041b5704506f0d4da888885`,
+        gasolinaRepo: `${GASOLINA_REPO}`,
         projectName: 'canary-dvn', // EDIT: project_name e.g. foobar-gasolina
         stage: 'prod', // EDIT: stage e.g. prod/nonprod
         environment: 'mainnet', // EDIT: environment e.g. mainnet/testnet
@@ -34,8 +35,7 @@ export const CONFIG: {
     },
     // EDIT: aws account number
     '891612567040': {
-        // gasolinaRepo: 'us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0',
-        gasolinaRepo: `${GASOLINA_REPO}@sha256:7313cedf1e3b3468c4cf1c2a1de012b003d7ae9a3041b5704506f0d4da888885`,
+        gasolinaRepo: `${GASOLINA_REPO}`,
         projectName: 'canary-dvn-dev', // EDIT: project_name e.g. foobar-gasolina
         stage: 'nonprod', // EDIT: stage e.g. prod/nonprod
         environment: 'mainnet', // EDIT: environment e.g. mainnet/testnet
