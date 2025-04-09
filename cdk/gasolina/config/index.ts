@@ -1,5 +1,5 @@
 // Canary implementation
-const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:aae817d52ba39a78c816eabb7f535239b52884f0f6ae506177a9e8d4eada1030';
+const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:68bb48b12034f7b87a73b608a8fe304b72c03d042312b8856aa64c188db31e01';
 // Layer0 implementation was us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0
 
 export const CONFIG: {
@@ -32,6 +32,7 @@ export const CONFIG: {
         // Remove to disable datadog integration - if enabling, remember to create an AWS Secret Manager entry with name and datadog/api-key and a key called "key" with the DataDog API key
         dataDogDomain: 'datadoghq.eu',
         minReplicas: 2,
+        maxReplicas: 8
     },
     // EDIT: aws account number
     '891612567040': {
