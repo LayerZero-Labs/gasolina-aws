@@ -66,10 +66,10 @@ API Input:
     sentEvent: { // PacketSent event, emitted from the Endpoint contract
         lzMessageId: {
             pathwayId: {
-                srcEid: number // Soure chain eid (https://github.com/LayerZero-Labs/LayerZero-v2/blob/main/packages/layerzero-v2/evm/protocol/contracts/EndpointV2.sol#L23)
+                srcEid: number // Source chain eid (https://github.com/LayerZero-Labs/LayerZero-v2/blob/main/packages/layerzero-v2/evm/protocol/contracts/EndpointV2.sol#L23)
                 dstEid: number
-                sender: string // Sender oapp address on source chain
-                receiver: string // Receiver oapp address on destination chain
+                sender: string // Sender oApp address on source chain
+                receiver: string // Receiver oApp address on destination chain
                 srcChainName: string // Source Chain Name
                 dstChainName: string // Destination Chain Name
             }
@@ -104,7 +104,7 @@ API Input:
             blockNumber: number
         }
     }
-    from: string // Address of the sender
+    from: string // Address that initiated the transaction
 }
 ```
 
