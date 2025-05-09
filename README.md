@@ -24,7 +24,7 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
     -   You want to store the secret as key-value pair. For a single secret:
     -   For the mnemonic use the key: LAYERZERO_WALLET_MNEMONIC
     -   For the PATH use the key: LAYERZERO_WALLET_PATH
-    -   Call the secret accordingly to the walletConfig/{stage}/{environment}.json file
+    -   Call the secret accordingly to the cdk/gasolina/walletConfig/{stage}/{environment}.json file
 -   If you want to use AWS KMS (backed by HSM), you can set this in your config and all key creation and registration into the application is done for you.
 
 -   In the root directory of the project, run `yarn` to install all dependencies.

@@ -1,5 +1,5 @@
 // Canary implementation
-const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:27942fa27a03fedf55510e86ab6b00990d93703e8e4cb278caf239c8dc8bd606';
+const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:45d79e238a79e62366ba9647e4e09e7db2812bd4ae8f278c3b380bc4e2e39873';
 // Layer0 implementation was us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0
 
 export const CONFIG: {
@@ -24,7 +24,7 @@ export const CONFIG: {
         stage: 'prod', // EDIT: stage e.g. prod/nonprod
         environment: 'mainnet', // EDIT: environment e.g. mainnet/testnet
         availableChainNames:
-            'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // EDIT: all the chains gasolina will support that matches those listed in providers
+            'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // deprecated for Canary DVN
         signerType: 'MNEMONIC', // EDIT: MNEMONIC or KMS
         // kmsNumOfSigners: 1, // EDIT: only required if signerType is KMS
         // extraContextRequestUrl: undefined // EDIT: optional
@@ -41,7 +41,7 @@ export const CONFIG: {
         stage: 'nonprod', // EDIT: stage e.g. prod/nonprod
         environment: 'mainnet', // EDIT: environment e.g. mainnet/testnet
         availableChainNames:
-            'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // EDIT: all the chains gasolina will support that matches those listed in providers
+            'ethereum,bsc,avalanche,polygon,arbitrum,optimism,fantom', // deprecated for Canary DVN
         signerType: 'MNEMONIC', // EDIT: MNEMONIC or KMS
         // kmsNumOfSigners: 1, // EDIT: only required if signerType is KMS
         // extraContextRequestUrl: undefined // EDIT: optional
