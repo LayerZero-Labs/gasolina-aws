@@ -1,5 +1,5 @@
 // Canary implementation
-const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:7b766fcec553f61d2d4a6e303c3976228aaa6136d3066b8c1e1167b4d575dbe7';
+const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:a68a85737b16b8313b4a6b094a782a80f8a653957ac899e9d9cd66e3aef78014';
 // Layer0 implementation was us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0
 
 export const CONFIG: {
