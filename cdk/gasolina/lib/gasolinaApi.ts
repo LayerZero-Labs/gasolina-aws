@@ -130,6 +130,8 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
         'docker/credentials'
     );
 
+    const profile = props.stage == 'prod' ? 'prod' : 'dev';
+
     // Fargate service
     const service = createApplicationLoadBalancedFargateService(props.stack, {
         layerzeroPrefix: LAYERZERO_PREFIX,
@@ -149,12 +151,14 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
                 DD_TRACE_AGENT_PORT: '8126',
                 DD_DOGSTATSD_PORT: '8125',
                 // DD_TRACE_DEBUG: 'true',
+                METRICS_S3_ENABLED: 'true',
+                METRICS_S3_BUCKET_NAME: 'layer0-dvn-' + profile,
             }),
             NPM_TOKEN: 'foobar',
             [ENV_VAR_NAMES.LZ_ENV]: props.environment,
             [ENV_VAR_NAMES.LZ_CDK_DEPLOY_REGION]: props.stack.region,
             SIGNER_TYPE: props.signerType,
-            APP_PROFILE: props.stage == 'prod' ? 'prod' : 'dev',
+            APP_PROFILE: profile,
             SERVER_PORT: '8081',
             [ENV_VAR_NAMES.LZ_SUPPORTED_ULNS]: JSON.stringify(['V2']),
             [ENV_VAR_NAMES.LZ_PROVIDER_BUCKET]: bucket.bucketName,
