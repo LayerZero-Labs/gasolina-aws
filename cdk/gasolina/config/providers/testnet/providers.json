@@ -4,7 +4,13 @@
             "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
             "https://gateway.tenderly.co/public/goerli",
             "https://eth-goerli.public.blastapi.io",
-            "https://rpc.ankr.com/eth_goerli"
+            "https://rpc.ankr.com/eth_goerli",
+            {
+                "uri": "https://ethereum-goerli-rpc.publicnode.com",
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
         ],
         "quorum": 1
     },
