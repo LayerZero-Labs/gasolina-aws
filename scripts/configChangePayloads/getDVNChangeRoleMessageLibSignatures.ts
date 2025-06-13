@@ -40,6 +40,11 @@ const args = parse({
         type: String,
         description: 'address of the message library',
     },
+    quorum: {
+        alias: 'q',
+        type: Number,
+        description: 'number of signatures required for quorum',
+    },
     access: {
         alias: 'a',
         type: Number, // Not a boolean to make it required in the command line, so users be explicit about it
@@ -68,7 +73,7 @@ const getCallData = (address: string, access: number) => {
 }
 
 const main = async () => {
-    const { environment, chainNames, messageLibAddress, access } = args
+    const { environment, chainNames, messageLibAddress, quorum, access } = args
 
     // validate inputs
     if (!['0', '1'].includes(access.toString())) {
@@ -99,10 +104,7 @@ const main = async () => {
             )
 
             const signatures = await getSignatures(signers, hash)
-            const signaturesPayload = getSignaturesPayload(
-                signatures,
-                signatures.length,
-            )
+            const signaturesPayload = getSignaturesPayload(signatures, quorum)
 
             results[chainName] = {
                 args: {
