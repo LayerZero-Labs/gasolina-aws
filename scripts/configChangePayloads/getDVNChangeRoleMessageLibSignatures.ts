@@ -12,7 +12,10 @@ import {
 } from './utils'
 
 const PATH = path.join(__dirname)
-const FILE_PATH = `${PATH}/role-change-payloads.json`
+
+const getSaveFilePath = (access: number) => {
+    return `${PATH}/${access === 0 ? 'grant' : 'revoke'}-role-payloads.json`
+}
 const EXPIRATION = Date.now() + 7 * 24 * 60 * 60 * 1000 // 1 week expiration from now
 
 /**
@@ -58,10 +61,7 @@ const iface = new ethers.utils.Interface([
 ])
 
 const getCallData = (address: string, access: number) => {
-    if (![0, 1].includes(access)) {
-        throw new Error('Access is not 0 or 1')
-    }
-    return iface.encodeFunctionData(0 ? 'grantRole' : 'revokeRole', [
+    return iface.encodeFunctionData(access === 0 ? 'grantRole' : 'revokeRole', [
         MESSAGE_LIB_ROLE,
         address,
     ])
@@ -125,8 +125,9 @@ const main = async () => {
             }
         }),
     )
-    fs.writeFileSync(FILE_PATH, JSON.stringify(results))
-    console.log(`Results written to: ${FILE_PATH}`)
+    const filePath = getSaveFilePath(access)
+    fs.writeFileSync(filePath, JSON.stringify(results))
+    console.log(`Results written to: ${filePath}`)
 }
 
 main()
