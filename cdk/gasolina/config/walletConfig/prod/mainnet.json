@@ -5,11 +5,11 @@
             "byChainType": {
                 "EVM": {
                     "address": "0x6d695bDb416274d37fb877f5f46A3F20c9343D80",
-                    "secretName": "prod/gasolina"
+                    "secretName": "prod/layerzero-dvn/evm"
                 },
                 "SVM": {
                     "address": "nKtqDFhGeUDQpDVatUxKFUkSciAkBUaTof1g1iJQTr4",
-                    "secretName": "prod/gasolina-sol"
+                    "secretName": "prod/layerzero-dvn/svm"
                 }
             }
         }

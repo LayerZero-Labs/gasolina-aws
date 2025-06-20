@@ -39,6 +39,7 @@ interface CreateGasolinaServiceProps {
     kmsNumOfSigners?: number
     extraContextRequestUrl?: string
     dataDogDomain?: string
+    kmsKeyARN: string
 }
 
 export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
@@ -194,6 +195,12 @@ export const createGasolinaService = (props: CreateGasolinaServiceProps) => {
 
     // Grant service permissions
     bucket.grantRead(service.taskDefinition.taskRole)
+
+    service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['kms:Decrypt'],
+        resources: [props.kmsKeyARN]
+    }));
 
     if (props.signerType === 'MNEMONIC') {
         // If MNEMONIC grant service read access to secrets manager that you uploaded independently

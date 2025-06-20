@@ -52,6 +52,7 @@ export class GasolinaCdkStack extends LZCdkStack {
             dataDogDomain: config.dataDogDomain,
             minReplicas: config.minReplicas,
             maxReplicas: config.maxReplicas,
+            kmsKeyARN: config.kmsKeyARN,
         })
     }
 }

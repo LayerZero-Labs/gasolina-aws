@@ -1,5 +1,5 @@
 // Canary implementation
-const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:b0ee99573bd4e31868b636a5a31f77b081449cdc5801cff21ca2786a4a83210d';
+const GASOLINA_REPO = 'canaryprotocol/layerzero-dvn@sha256:3bacd21f28b09271172271616005cc5c244ed0ba3a762b165f22fffde631b53a';
 // Layer0 implementation was us-east1-docker.pkg.dev/lz-docker/gasolina/gasolina@sha256:e1c37062ff5e2f61dc69c7b405d3851a3db042c450d8410caf935bf426c7cdf0
 
 export const CONFIG: {
@@ -15,6 +15,7 @@ export const CONFIG: {
         extraContextRequestUrl?: string
         minReplicas: number
         maxReplicas?: number
+        kmsKeyARN: string
     }
 } = {
     // EDIT: aws account number
@@ -32,7 +33,8 @@ export const CONFIG: {
         // Remove to disable datadog integration - if enabling, remember to create an AWS Secret Manager entry with name and datadog/api-key and a key called "key" with the DataDog API key
         dataDogDomain: 'datadoghq.eu',
         minReplicas: 2,
-        maxReplicas: 8
+        maxReplicas: 8,
+        kmsKeyARN: 'arn:aws:kms:eu-west-2:528757792527:key/960f4a8a-9799-4cc0-bc3c-b497ea36d887',
     },
     // EDIT: aws account number
     '891612567040': {
@@ -50,5 +52,6 @@ export const CONFIG: {
         dataDogDomain: 'datadoghq.eu',
         minReplicas: 1,
         maxReplicas: 1,
+        kmsKeyARN: 'arn:aws:kms:eu-west-2:891612567040:key/8345e35f-7d75-4960-8707-34fe56fe12e9',
     },
 }
