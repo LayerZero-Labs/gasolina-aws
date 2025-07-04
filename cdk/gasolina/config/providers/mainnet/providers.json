@@ -16,9 +16,7 @@
         "quorum": 1
     },
     "avalanche": {
-        "uris": [
-            "https://api.avax.network/ext/bc/C/rpc"
-        ],
+        "uris": ["https://api.avax.network/ext/bc/C/rpc"],
         "quorum": 1
     },
     "polygon": {
@@ -42,7 +40,6 @@
             "https://mainnet.optimism.io",
             "https://rpc.ankr.com/optimism",
             "https://optimism-mainnet.public.blastapi.io"
-
         ],
         "quorum": 1
     },
@@ -51,6 +48,36 @@
             "https://rpc.fantom.network",
             "https://rpc2.fantom.network",
             "https://rpc3.fantom.network"
+        ],
+        "quorum": 1
+    },
+    "ton": {
+        "uris": [
+            "https://toncenter.com/api/v2?v3-endpoint=https://toncenter.com/api/v3"
+        ],
+        "quorum": 1
+    },
+    "movement": {
+        "uris": [
+            "https://full.mainnet.movementinfra.xyz/v1?event-indexer=https://indexer.mainnet.movementnetwork.xyz/v1/graphql"
+        ],
+        "quorum": 1
+    },
+    "aptos": {
+        "uris": [
+            "https://api.mainnet.aptoslabs.com/v1&event-indexer=https://api.mainnet.aptoslabs.com/v1/graphql"
+        ],
+        "quorum": 1
+    },
+    "initia": {
+        "uris": [
+            "https://rest.initia.xyz?event-indexer=https://graphql.initia.xyz/v1/graphql"
+        ],
+        "quorum": 1
+    },
+    "tron": {
+        "uris": [
+            "https://api.trongrid.io/jsonrpc?tron-web-url=https://api.trongrid.io"
         ],
         "quorum": 1
     }
