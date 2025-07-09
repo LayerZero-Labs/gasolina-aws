@@ -1,10 +1,10 @@
-import { ethers } from 'ethers'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'ts-command-line-args'
 
-import { AwsKmsKey, getAwsKmsSigners } from './kms'
+import { AwsKmsKey } from './kms'
 import {
+    getAddOrRemoveSignerCallData,
     getSignatures,
     getSignaturesPayload,
     getVId,
@@ -48,12 +48,6 @@ const args = parse({
     },
 })
 
-const setSignerFunctionSig = 'function setSigner(address _signer, bool _active)'
-const iface = new ethers.utils.Interface([setSignerFunctionSig])
-const getCallData = (signerAddress: string, active: boolean) => {
-    return iface.encodeFunctionData('setSigner', [signerAddress, active])
-}
-
 const main = async () => {
     const { environment, chainNames, quorum, signerAddress, shouldRevoke } =
         args
@@ -64,7 +58,6 @@ const main = async () => {
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
 
     const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
-    const signers = await getAwsKmsSigners(keyIds)
 
     const availableChainNames = chainNames.split(',')
 
@@ -73,19 +66,24 @@ const main = async () => {
         availableChainNames.map(async (chainName) => {
             results[chainName] = results[chainName] || {}
             const vId = getVId(chainName, environment)
-            const callData = getCallData(
+            const callData = await getAddOrRemoveSignerCallData(
+                dvnAddresses[chainName],
                 signerAddress,
                 shouldRevoke === 1 ? false : true,
+                chainName,
+                environment,
             )
 
-            const hash = hashCallData(
+            const hash = await hashCallData(
                 dvnAddresses[chainName],
                 vId,
                 EXPIRATION,
                 callData,
+                chainName,
+                environment,
             )
 
-            const signatures = await getSignatures(signers, hash)
+            const signatures = await getSignatures(keyIds, hash, chainName)
             const signaturesPayload = getSignaturesPayload(signatures, quorum)
 
             results[chainName] = {
@@ -106,7 +104,7 @@ const main = async () => {
             }
         }),
     )
-    fs.writeFileSync(FILE_PATH, JSON.stringify(results))
+    fs.writeFileSync(FILE_PATH, JSON.stringify(results, null, 4))
     console.log(`Results written to: ${FILE_PATH}`)
 }
 

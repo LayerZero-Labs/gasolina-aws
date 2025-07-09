@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { parse } from 'ts-command-line-args'
 
-import { AwsKmsKey, getAwsKmsSigners } from './kms'
+import { AwsKmsKey } from './kms'
 import {
     getSignatures,
     getSignaturesPayload,
@@ -84,8 +84,6 @@ const main = async () => {
 
     const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
 
-    const signers = await getAwsKmsSigners(keyIds)
-
     const availableChainNames = chainNames.split(',')
 
     const results: { [chainName: string]: any } = {}
@@ -96,14 +94,16 @@ const main = async () => {
             // fetch the message library address from packages
             const callData = getCallData(messageLibAddress, access)
 
-            const hash = hashCallData(
+            const hash = await hashCallData(
                 dvnAddresses[chainName],
                 vId,
                 EXPIRATION,
                 callData,
+                chainName,
+                environment,
             )
 
-            const signatures = await getSignatures(signers, hash)
+            const signatures = await getSignatures(keyIds, hash, chainName)
             const signaturesPayload = getSignaturesPayload(signatures, quorum)
 
             results[chainName] = {
@@ -128,7 +128,7 @@ const main = async () => {
         }),
     )
     const filePath = getSaveFilePath(access)
-    fs.writeFileSync(filePath, JSON.stringify(results))
+    fs.writeFileSync(filePath, JSON.stringify(results, null, 4))
     console.log(`Results written to: ${filePath}`)
 }
 

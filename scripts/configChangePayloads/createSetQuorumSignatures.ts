@@ -1,10 +1,10 @@
-import { ethers } from 'ethers'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'ts-command-line-args'
 
-import { AwsKmsKey, getAwsKmsSigners } from './kms'
+import { AwsKmsKey } from './kms'
 import {
+    getSetQuorumCallData,
     getSignatures,
     getSignaturesPayload,
     getVId,
@@ -43,19 +43,12 @@ const args = parse({
     },
 })
 
-const setQuorumFunctionSig = 'function setQuorum(uint64 _quorum)'
-const iface = new ethers.utils.Interface([setQuorumFunctionSig])
-const getCallData = (newQuorum: number) => {
-    return iface.encodeFunctionData('setQuorum', [newQuorum])
-}
-
 const main = async () => {
     const { environment, chainNames, oldQuorum, newQuorum } = args
 
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
 
     const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
-    const signers = await getAwsKmsSigners(keyIds)
 
     const availableChainNames = chainNames.split(',')
 
@@ -64,16 +57,23 @@ const main = async () => {
         availableChainNames.map(async (chainName) => {
             results[chainName] = results[chainName] || {}
             const vId = getVId(chainName, environment)
-            const callData = getCallData(newQuorum)
+            const callData = await getSetQuorumCallData(
+                dvnAddresses[chainName],
+                newQuorum,
+                chainName,
+                environment,
+            )
 
-            const hash = hashCallData(
+            const hash = await hashCallData(
                 dvnAddresses[chainName],
                 vId,
                 EXPIRATION,
                 callData,
+                chainName,
+                environment,
             )
 
-            const signatures = await getSignatures(signers, hash)
+            const signatures = await getSignatures(keyIds, hash, chainName)
             const signaturesPayload = getSignaturesPayload(
                 signatures,
                 oldQuorum,
@@ -96,7 +96,7 @@ const main = async () => {
             }
         }),
     )
-    fs.writeFileSync(FILE_PATH, JSON.stringify(results))
+    fs.writeFileSync(FILE_PATH, JSON.stringify(results, null, 4))
     console.log(`Results written to: ${FILE_PATH}`)
 }
 
