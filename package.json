@@ -1,6 +1,7 @@
 {
     "name": "@layerzerolabs/gasolina-aws",
     "version": "0.0.1",
+    "license": "MIT",
     "private": true,
     "bin": {
         "cdk": "bin/cdk.js"
