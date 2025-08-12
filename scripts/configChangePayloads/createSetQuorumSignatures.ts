@@ -77,6 +77,7 @@ const main = async () => {
             const signaturesPayload = getSignaturesPayload(
                 signatures,
                 oldQuorum,
+                chainName,
             )
 
             results[chainName] = {

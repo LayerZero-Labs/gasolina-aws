@@ -3901,6 +3901,11 @@ ext@^1.7.0:
   dependencies:
     type "^2.7.2"
 
+extended-buffer@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/extended-buffer/-/extended-buffer-6.1.0.tgz#0c9f50d71acef7a6048e904f24a937e093e626eb"
+  integrity sha512-cQwfrYOZEzSqsSkav15ppifOynfJfCPwfPM1wutukoBlvqr2G8ib0uR1EcVmxCWfS4XjYPCywJDAS0s6LeICBQ==
+
 eyes@^0.1.8:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/eyes/-/eyes-0.1.8.tgz#62cf120234c683785d902348a800ef3e0cc20bc0"
