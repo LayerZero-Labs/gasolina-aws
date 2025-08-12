@@ -1,8 +1,8 @@
 {
     "name": "@layerzerolabs/gasolina-aws",
     "version": "0.0.1",
-    "license": "MIT",
     "private": true,
+    "license": "MIT",
     "bin": {
         "cdk": "bin/cdk.js"
     },
@@ -31,6 +31,7 @@
         "command-line-args": "^5.2.1",
         "constructs": "^10.0.0",
         "elliptic": "^6.6.1",
+        "extended-buffer": "^6.1.0",
         "ts-command-line-args": "^2.4.2",
         "ts-node": "^10.9.1"
     },
