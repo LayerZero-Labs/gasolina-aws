@@ -125,15 +125,21 @@ export async function getSignatures(
 export function getSignaturesPayload(
     signatures: Signature[],
     quorum: number,
-): string {
-    signatures.sort((a: Signature, b: Signature) =>
-        a.address.localeCompare(b.address),
-    )
-    const signaturesForQuorum = signatures.slice(0, quorum)
-    return ethers.utils.solidityPack(
-        signaturesForQuorum.map(() => 'bytes'),
-        signaturesForQuorum.map((s: Signature) => s.signature),
-    )
+    chainName: string,
+): string | string[] {
+    // For solana, we need to return an array of signatures
+    if (chainName == 'solana') {
+        return signatures.slice(0, quorum).map((s: Signature) => s.signature)
+    } else {
+        signatures.sort((a: Signature, b: Signature) =>
+            a.address.localeCompare(b.address),
+        )
+        const signaturesForQuorum = signatures.slice(0, quorum)
+        return ethers.utils.solidityPack(
+            signaturesForQuorum.map(() => 'bytes'),
+            signaturesForQuorum.map((s: Signature) => s.signature),
+        )
+    }
 }
 
 function getSolanaProvider(environment: string) {
