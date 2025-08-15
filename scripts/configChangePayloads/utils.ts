@@ -5,7 +5,12 @@ import * as base58 from 'bs58'
 import { ethers } from 'ethers'
 import { ExtendedBuffer } from 'extended-buffer'
 
-import { getChainIdForNetwork } from '@layerzerolabs/lz-definitions'
+import {
+    Chain,
+    EndpointVersion,
+    Stage,
+    chainAndStageToEndpointId,
+} from '@layerzerolabs/lz-definitions'
 import { bcsSerializeBytes } from '@layerzerolabs/lz-serdes'
 import { DVNProgram } from '@layerzerolabs/lz-solana-sdk-v2'
 
@@ -19,10 +24,18 @@ export interface Signature {
 export function getVId(chainName: string, environment: string): string {
     // By convention the vid is always the endpointV1 chainId
     if (['solana', 'ton', 'initia', 'movement'].includes(chainName)) {
-        const eid = getChainIdForNetwork(chainName, environment, '302')
+        const eid = chainAndStageToEndpointId(
+            chainName as Chain,
+            environment as Stage,
+            EndpointVersion.V2,
+        ).toString()
         return (parseInt(eid) % 30000).toString()
     }
-    return getChainIdForNetwork(chainName, environment, '2')
+    return chainAndStageToEndpointId(
+        chainName as Chain,
+        environment as Stage,
+        EndpointVersion.V1,
+    ).toString()
 }
 
 export function trim0x(str: string): string {
