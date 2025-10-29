@@ -75,7 +75,7 @@ const getRSFromDER = (
         throw new Error('Signature is undefined.')
     }
 
-    const decoded = EcdsaSigAsnParse.decode(signature, 'der')
+    const decoded = EcdsaSigAsnParse.decode(Buffer.from(signature), 'der')
 
     const r = new BN(decoded.r)
     let s = new BN(decoded.s)
@@ -127,7 +127,9 @@ const appendRecoveryIdToSignature = (
     )
     // join r, s and v
     const signature = bytesToHexPrefixed(
-        Buffer.concat([r, s, new BN(v).toBuffer('be', 1)]),
+        Uint8Array.from(
+            Buffer.concat([r, s, Uint8Array.from(new BN(v).toBuffer('be', 1))]),
+        ),
     )
     return signature
 }
@@ -145,7 +147,7 @@ async function convertToUint8Array(
     ciphertext: AWS.KMS.Types.CiphertextType,
 ): Promise<Uint8Array> {
     if (ciphertext instanceof Uint8Array) {
-        return ciphertext
+        return Uint8Array.from(ciphertext)
     } else if (typeof ciphertext === 'string') {
         return new Uint8Array(Buffer.from(ciphertext, 'base64'))
     } else if (ciphertext instanceof Buffer) {
