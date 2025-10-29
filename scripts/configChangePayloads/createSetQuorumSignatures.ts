@@ -80,11 +80,20 @@ const main = async () => {
                 chainName,
             )
 
+            let outputCallData: any
+            if (['aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+                outputCallData = {
+                    newQuorum,
+                }
+            } else {
+                outputCallData = callData
+            }
+
             results[chainName] = {
                 args: {
                     target: dvnAddresses[chainName],
                     signatures: signaturesPayload,
-                    callData,
+                    callData: outputCallData,
                     expiration: EXPIRATION,
                     vid: vId,
                 },

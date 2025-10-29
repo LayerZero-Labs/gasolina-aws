@@ -2,5 +2,8 @@
     "bsc": "0x0eE552262f7B562eFcED6DD4A7e2878AB897d405",
     "avalanche": "0x9f0e79Aeb198750F963b6f30B99d87c6EE5A0467",
     "fantom": "0xFffc92A6AbE6480AdC574901ebFDe108A7077Eb8",
-    "solana": "4VDjp6XQaxoZf5RGwiPU9NR1EXSZn2TP4ATMmiSzLfhb"
+    "solana": "4VDjp6XQaxoZf5RGwiPU9NR1EXSZn2TP4ATMmiSzLfhb",
+    "aptos": "0x756f8ab056688d22687740f4a9aeec3b361170b28d08b719e28c4d38eed1043e",
+    "initia": "0x3f12330ba9e26a604e2149b4b67c0710d32fcbc3de0bea76dd43dbb6b747bc8c",
+    "ton": "0x0bdeb1ed505bdf34e0733a9e41c9b9045bf8f0f012fe96e69732d6d2b410882b"
 }

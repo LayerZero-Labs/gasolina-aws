@@ -1,5 +1,6 @@
 import * as sha3 from '@noble/hashes/sha3'
 import * as web3 from '@solana/web3.js'
+import { Dictionary } from '@ton/core'
 import BN from 'bn.js'
 import * as base58 from 'bs58'
 import { ethers } from 'ethers'
@@ -13,8 +14,17 @@ import {
 } from '@layerzerolabs/lz-definitions'
 import { bcsSerializeBytes } from '@layerzerolabs/lz-serdes'
 import { DVNProgram } from '@layerzerolabs/lz-solana-sdk-v2'
+import {
+    OPCODES,
+    addressToBigInt,
+    addressToHex,
+    buildClass,
+    decodeClass,
+    emptyCell,
+} from '@layerzerolabs/lz-ton-sdk-v2'
 
 import { AwsKmsKey, getAwsKmsSigners, signUsingAwsKmsClinet } from './kms'
+import { getImplementationContract, getTonProvider } from './tonUtils'
 
 export interface Signature {
     signature: string
@@ -69,7 +79,9 @@ export function getFunctionSignatureHash(funcName: string): string {
     const funcNameHexStr = Buffer.from(funcName).toString('hex')
     const funcNameBcs = bcsSerializeBytes(stringToUint8Array(funcNameHexStr))
     encoded_data.writeBuffer(Buffer.from(funcNameBcs))
-    return bytesToHex(sha3.keccak_256(encoded_data.buffer)).slice(0, 8)
+    return bytesToHex(
+        sha3.keccak_256(Uint8Array.from(encoded_data.buffer)),
+    ).slice(0, 8)
 }
 
 export async function hashCallData(
@@ -91,7 +103,7 @@ export async function hashCallData(
         }
         const [digestBytes] =
             DVNProgram.types.executeTransactionDigestBeet.serialize(digest)
-        return bytesToHex(sha3.keccak_256(digestBytes))
+        return bytesToHex(sha3.keccak_256(Uint8Array.from(digestBytes)))
     } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(Buffer.from(stringToUint8Array(callData)))
@@ -101,7 +113,10 @@ export async function hashCallData(
         encoded_data.writeBuffer(
             new BN(expiration.toString()).toArrayLike(Buffer, 'be', 8),
         )
-        return bytesToHex(sha3.keccak_256(encoded_data.buffer))
+        return bytesToHex(sha3.keccak_256(Uint8Array.from(encoded_data.buffer)))
+    } else if (chainName == 'ton') {
+        // For TON, we use the TON sdk hash function when building the call data, so call data is already hashed
+        return callData
     } else {
         // Assuming chain is EVM based
         return ethers.utils.keccak256(
@@ -118,7 +133,7 @@ export async function getSignatures(
     hash: string,
     chainName: string,
 ): Promise<Signature[]> {
-    if (['solana', 'aptos', 'initia', 'movement'].includes(chainName)) {
+    if (['solana', 'aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
         return await Promise.all(
             keyIds.map(async (keyId) => signUsingAwsKmsClinet(keyId, hash)),
         )
@@ -139,10 +154,13 @@ export function getSignaturesPayload(
     signatures: Signature[],
     quorum: number,
     chainName: string,
-): string | string[] {
-    // For solana, we need to return an array of signatures
+): string | string[] | Signature[] {
     if (chainName == 'solana') {
+        // For solana, we need to return an array of signatures
         return signatures.slice(0, quorum).map((s: Signature) => s.signature)
+    } else if (chainName == 'ton') {
+        // For ton, we need to have signatrues associated with their respective address
+        return signatures
     } else {
         signatures.sort((a: Signature, b: Signature) =>
             a.address.localeCompare(b.address),
@@ -178,7 +196,7 @@ export async function getSetQuorumCallData(
         const dvnProgramId = await getSolanaDvnProgramId(target, environment)
         const dvnProgram = new DVNProgram.DVN(dvnProgramId)
         const instruction = dvnProgram.createSetQuorumInstruction(newQuorum)
-        return bytesToHex(instruction.data)
+        return bytesToHex(Uint8Array.from(instruction.data))
     } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
@@ -188,6 +206,17 @@ export async function getSetQuorumCallData(
         )
         encoded_data.writeBuffer(new BN(newQuorum).toArrayLike(Buffer, 'be', 8))
         return encoded_data.buffer.toString('hex')
+    } else if (chainName == 'ton') {
+        const provider = getTonProvider(environment)
+        const dvn = await getImplementationContract(provider, target)
+        const dvnStorage = decodeClass('Dvn', await dvn.getCurrentStorageCell())
+        const setQuorumCallData = buildClass('md::SetQuorum', {
+            nonce: dvnStorage.setQuorumNonce,
+            opcode: OPCODES.Dvn_OP_SET_QUORUM,
+            quorum: newQuorum,
+            target: dvn.address,
+        })
+        return setQuorumCallData.hash().toString('hex')
     } else {
         // Assuming chain is EVM based
         const setQuorumFunctionSig = 'function setQuorum(uint64 _quorum)'
@@ -227,7 +256,7 @@ export async function getAddOrRemoveSignerCallData(
             newSigners.push(signerAddressInBytes)
         }
         const instruction = dvnProgram.createSetSignersInstruction(newSigners)
-        return bytesToHex(instruction.data)
+        return bytesToHex(Uint8Array.from(instruction.data))
     } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
@@ -238,6 +267,52 @@ export async function getAddOrRemoveSignerCallData(
         encoded_data.writeBuffer(Buffer.from(stringToUint8Array(signerAddress)))
         encoded_data.writeUInt8(active ? 1 : 0)
         return encoded_data.buffer.toString('hex')
+    } else if (chainName == 'ton') {
+        const provider = getTonProvider(environment)
+        const dvn = await getImplementationContract(provider, target)
+
+        const dvnStorage = decodeClass('Dvn', await dvn.getCurrentStorageCell())
+
+        const targetSignerAddress = addressToHex(signerAddress)
+        const currentSigners = dvnStorage.verifiers
+            .getDict(Dictionary.Values.Cell())
+            .keys()
+            .map(addressToHex)
+
+        const newSignersDict = Dictionary.empty(
+            Dictionary.Keys.BigUint(256),
+            Dictionary.Values.Cell(),
+        )
+        if (!active) {
+            for (const signer of currentSigners) {
+                if (signer !== targetSignerAddress) {
+                    newSignersDict.set(addressToBigInt(signer), emptyCell())
+                }
+            }
+            if (newSignersDict.size === 0) {
+                throw new Error(
+                    `Should not remove the last existing signer of ${target}`,
+                )
+            }
+        } else {
+            if (currentSigners.includes(targetSignerAddress)) {
+                throw new Error(
+                    `${targetSignerAddress} is already a signer of ${target}`,
+                )
+            }
+            ;[...currentSigners, targetSignerAddress].forEach((signer) =>
+                newSignersDict.set(addressToBigInt(signer), emptyCell()),
+            )
+        }
+
+        const dvnSetVerifiersCallData = buildClass('md::SetDict', {
+            nonce: dvnStorage.setVerifiersNonce,
+            opcode: OPCODES.Dvn_OP_SET_VERIFIERS,
+            dict: newSignersDict,
+            target: dvn.address,
+        })
+
+        return dvnSetVerifiersCallData.hash().toString('hex')
     } else {
         // Assuming chain is EVM based
         const setSignerFunctionSig =
