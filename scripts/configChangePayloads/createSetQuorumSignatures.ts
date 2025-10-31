@@ -3,9 +3,12 @@ import path from 'path'
 import { parse } from 'ts-command-line-args'
 
 import { AwsKmsKey } from './kms'
+import { AwsSecretInfo } from './mnemonicSigner'
 import {
+    Signature,
+    getKmsSignatures,
+    getMnemonicSignatures,
     getSetQuorumCallData,
-    getSignatures,
     getSignaturesPayload,
     getVId,
     hashCallData,
@@ -41,14 +44,26 @@ const args = parse({
         type: Number,
         description: 'new quorum',
     },
+    kmsOrMnemonicSigner: {
+        type: String,
+        description: 'kms or mnemonic',
+    },
 })
 
 const main = async () => {
-    const { environment, chainNames, oldQuorum, newQuorum } = args
+    const {
+        environment,
+        chainNames,
+        oldQuorum,
+        newQuorum,
+        kmsOrMnemonicSigner,
+    } = args
+
+    if (kmsOrMnemonicSigner !== 'kms' && kmsOrMnemonicSigner !== 'mnemonic') {
+        throw new Error('kmsOrMnemonicSigner must be kms or mnemonic')
+    }
 
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
-
-    const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
 
     const availableChainNames = chainNames.split(',')
 
@@ -73,7 +88,19 @@ const main = async () => {
                 environment,
             )
 
-            const signatures = await getSignatures(keyIds, hash, chainName)
+            let signatures: Signature[] = []
+            if (kmsOrMnemonicSigner === 'kms') {
+                const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
+                signatures = await getKmsSignatures(keyIds, hash, chainName)
+            } else {
+                const mnemonicSecretInfos: AwsSecretInfo[] = require(`./data/mnemonic-secret-infos-${environment}.json`)
+                signatures = await getMnemonicSignatures(
+                    mnemonicSecretInfos,
+                    hash,
+                    chainName,
+                )
+            }
+
             const signaturesPayload = getSignaturesPayload(
                 signatures,
                 oldQuorum,

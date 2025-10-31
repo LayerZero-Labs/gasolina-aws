@@ -24,6 +24,7 @@ import {
 } from '@layerzerolabs/lz-ton-sdk-v2'
 
 import { AwsKmsKey, getAwsKmsSigners, signUsingAwsKmsClinet } from './kms'
+import { AwsSecretInfo, signUsingMnemonic } from './mnemonicSigner'
 import { getImplementationContract, getTonProvider } from './tonUtils'
 
 export interface Signature {
@@ -128,7 +129,7 @@ export async function hashCallData(
     }
 }
 
-export async function getSignatures(
+export async function getKmsSignatures(
     keyIds: AwsKmsKey[],
     hash: string,
     chainName: string,
@@ -146,6 +147,24 @@ export async function getSignatures(
                 ),
                 address: await signer.getAddress(),
             })),
+        )
+    }
+}
+
+export async function getMnemonicSignatures(
+    mnemonicSecretInfos: AwsSecretInfo[],
+    hash: string,
+    chainName: string,
+): Promise<Signature[]> {
+    if (['solana', 'aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+        throw new Error(
+            'Mnemonic signatures are not supported for non-EVM chains',
+        )
+    } else {
+        return await Promise.all(
+            mnemonicSecretInfos.map(async (mnemonicSecretInfo) =>
+                signUsingMnemonic(mnemonicSecretInfo, hash),
+            ),
         )
     }
 }
