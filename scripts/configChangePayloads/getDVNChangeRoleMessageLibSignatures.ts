@@ -4,8 +4,11 @@ import path from 'path'
 import { parse } from 'ts-command-line-args'
 
 import { AwsKmsKey } from './kms'
+import { AwsSecretInfo } from './mnemonicSigner'
 import {
-    getSignatures,
+    Signature,
+    getKmsSignatures,
+    getMnemonicSignatures,
     getSignaturesPayload,
     getVId,
     hashCallData,
@@ -50,6 +53,10 @@ const args = parse({
         type: Number, // Not a boolean to make it required in the command line, so users be explicit about it
         description: 'set 0 to grant role or 1 to revoke role',
     },
+    kmsOrMnemonicSigner: {
+        type: String,
+        description: 'kms or mnemonic',
+    },
 })
 
 const grantRoleFunctionSig =
@@ -73,16 +80,24 @@ const getCallData = (address: string, access: number) => {
 }
 
 const main = async () => {
-    const { environment, chainNames, messageLibAddress, quorum, access } = args
+    const {
+        environment,
+        chainNames,
+        messageLibAddress,
+        quorum,
+        access,
+        kmsOrMnemonicSigner,
+    } = args
 
     // validate inputs
     if (!['0', '1'].includes(access.toString())) {
         throw new Error('access must be 0 or 1')
     }
+    if (kmsOrMnemonicSigner !== 'kms' && kmsOrMnemonicSigner !== 'mnemonic') {
+        throw new Error('kmsOrMnemonicSigner must be kms or mnemonic')
+    }
 
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
-
-    const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
 
     const availableChainNames = chainNames.split(',')
 
@@ -103,7 +118,19 @@ const main = async () => {
                 environment,
             )
 
-            const signatures = await getSignatures(keyIds, hash, chainName)
+            let signatures: Signature[] = []
+            if (kmsOrMnemonicSigner === 'kms') {
+                const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
+                signatures = await getKmsSignatures(keyIds, hash, chainName)
+            } else {
+                const mnemonicSecretInfos: AwsSecretInfo[] = require(`./data/mnemonic-secret-infos-${environment}.json`)
+                signatures = await getMnemonicSignatures(
+                    mnemonicSecretInfos,
+                    hash,
+                    chainName,
+                )
+            }
+
             const signaturesPayload = getSignaturesPayload(
                 signatures,
                 quorum,
