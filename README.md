@@ -26,7 +26,7 @@ This repository provides Infrastructure-As-Code (IAC) for installing Gasolina on
     -   For the PATH use the key: LAYERZERO_WALLET_PATH
 -   If you want to use AWS KMS (backed by HSM), you can set this in your config and all key creation and registration into the application is done for you.
 
--   In the root directory of the project, run `yarn` to install all dependencies.
+-   In the root directory of the project, run `pnpm i` to install all dependencies.
 
 ![img.png](assets/secret-manager-setup.png)
 

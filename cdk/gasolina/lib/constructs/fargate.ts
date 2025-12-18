@@ -24,7 +24,7 @@ export interface CreateFargateProps {
 const createTaskDefinition = (
     stack: Stack,
     props: CreateFargateProps,
-): ecs.TaskDefinition => {
+): ecs.FargateTaskDefinition => {
     const serviceLogGroup = new logs.LogGroup(
         stack,
         `${props.serviceName}ServiceLogGroup`,
@@ -37,13 +37,12 @@ const createTaskDefinition = (
 
     serviceLogGroup.applyRemovalPolicy(RemovalPolicy.DESTROY)
 
-    const taskDefinition = new ecs.TaskDefinition(
+    const taskDefinition = new ecs.FargateTaskDefinition(
         stack,
         `${props.serviceName}TaskDefinition`,
         {
-            compatibility: ecs.Compatibility.FARGATE,
-            cpu: '4096',
-            memoryMiB: '8192',
+            cpu: 4096,
+            memoryLimitMiB: 8192,
             taskRole: props.workerRole,
         },
     )
