@@ -3,7 +3,12 @@ import path from 'path'
 import { parse } from 'ts-command-line-args'
 
 import { AwsKmsKey } from './kms'
-import { AwsSecretInfo } from './mnemonicSigner'
+import {
+    AwsSecretInfo,
+    Mnemonic,
+    SignatureType,
+    signUsingLocalMnemonic,
+} from './mnemonicSigner'
 import {
     Signature,
     getAddOrRemoveSignerCallData,
@@ -12,6 +17,7 @@ import {
     getSignaturesPayload,
     getVId,
     hashCallData,
+    hexToUint8Array,
 } from './utils'
 
 const PATH = path.join(__dirname)
@@ -51,7 +57,7 @@ const args = parse({
     },
     kmsOrMnemonicSigner: {
         type: String,
-        description: 'kms or mnemonic',
+        description: 'kms or mnemonic or local',
     },
 })
 
@@ -68,7 +74,11 @@ const main = async () => {
     if (shouldRevoke !== 0 && shouldRevoke !== 1) {
         throw new Error('shouldRevoke must be 0 or 1')
     }
-    if (kmsOrMnemonicSigner !== 'kms' && kmsOrMnemonicSigner !== 'mnemonic') {
+    if (
+        kmsOrMnemonicSigner !== 'kms' &&
+        kmsOrMnemonicSigner !== 'mnemonic' &&
+        kmsOrMnemonicSigner !== 'local'
+    ) {
         throw new Error('kmsOrMnemonicSigner must be kms or mnemonic')
     }
 
@@ -102,12 +112,23 @@ const main = async () => {
             if (kmsOrMnemonicSigner === 'kms') {
                 const keyIds: AwsKmsKey[] = require(`./data/kms-keyids-${environment}.json`)
                 signatures = await getKmsSignatures(keyIds, hash, chainName)
-            } else {
+            } else if (kmsOrMnemonicSigner === 'mnemonic') {
                 const mnemonicSecretInfos: AwsSecretInfo[] = require(`./data/mnemonic-secret-infos-${environment}.json`)
                 signatures = await getMnemonicSignatures(
                     mnemonicSecretInfos,
                     hash,
                     chainName,
+                )
+            } else {
+                const mnemonics: Mnemonic[] = require(`./data/mnemonic.json`)
+                signatures = await Promise.all(
+                    mnemonics.map(
+                        async (mnemonic) =>
+                            await signUsingLocalMnemonic(
+                                mnemonic,
+                                hexToUint8Array(hash),
+                            ),
+                    ),
                 )
             }
 
@@ -118,7 +139,11 @@ const main = async () => {
             )
 
             let outputCallData: any
-            if (['aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+            if (
+                ['aptos', 'initia', 'movement', 'ton', 'sui'].includes(
+                    chainName,
+                )
+            ) {
                 outputCallData = {
                     signerAddress,
                     shouldRevoke: shouldRevoke === 1,

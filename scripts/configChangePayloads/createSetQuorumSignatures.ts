@@ -108,7 +108,7 @@ const main = async () => {
             )
 
             let outputCallData: any
-            if (['aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+            if (['aptos', 'initia', 'movement', 'ton', 'sui'].includes(chainName)) {
                 outputCallData = {
                     newQuorum,
                 }

@@ -34,7 +34,7 @@ export interface Signature {
 
 export function getVId(chainName: string, environment: string): string {
     // By convention the vid is always the endpointV1 chainId
-    if (['solana', 'ton', 'initia', 'movement'].includes(chainName)) {
+    if (['solana', 'ton', 'initia', 'movement', 'sui'].includes(chainName)) {
         const eid = chainAndStageToEndpointId(
             chainName as Chain,
             environment as Stage,
@@ -105,7 +105,7 @@ export async function hashCallData(
         const [digestBytes] =
             DVNProgram.types.executeTransactionDigestBeet.serialize(digest)
         return bytesToHex(sha3.keccak_256(Uint8Array.from(digestBytes)))
-    } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(Buffer.from(stringToUint8Array(callData)))
         encoded_data.writeBuffer(
@@ -134,7 +134,7 @@ export async function getKmsSignatures(
     hash: string,
     chainName: string,
 ): Promise<Signature[]> {
-    if (['solana', 'aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+    if (['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(chainName)) {
         return await Promise.all(
             keyIds.map(async (keyId) => signUsingAwsKmsClinet(keyId, hash)),
         )
@@ -156,7 +156,7 @@ export async function getMnemonicSignatures(
     hash: string,
     chainName: string,
 ): Promise<Signature[]> {
-    if (['solana', 'aptos', 'initia', 'movement', 'ton'].includes(chainName)) {
+    if (['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(chainName)) {
         throw new Error(
             'Mnemonic signatures are not supported for non-EVM chains',
         )
@@ -216,7 +216,7 @@ export async function getSetQuorumCallData(
         const dvnProgram = new DVNProgram.DVN(dvnProgramId)
         const instruction = dvnProgram.createSetQuorumInstruction(newQuorum)
         return bytesToHex(Uint8Array.from(instruction.data))
-    } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
             Buffer.from(
@@ -276,7 +276,7 @@ export async function getAddOrRemoveSignerCallData(
         }
         const instruction = dvnProgram.createSetSignersInstruction(newSigners)
         return bytesToHex(Uint8Array.from(instruction.data))
-    } else if (['aptos', 'initia', 'movement'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
             Buffer.from(
