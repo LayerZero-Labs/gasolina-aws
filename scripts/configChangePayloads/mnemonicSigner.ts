@@ -92,13 +92,13 @@ export async function signUsingMnemonic(
 
     const seed = await bip39.mnemonicToSeed(mnemonic)
     const keyPairEcdsa = BIP32Factory(ecc)
-        .fromSeed(Uint8Array.from(seed))
+        .fromSeed(Buffer.from(seed))
         .derivePath(path)
 
     const keyPair = {
         privateKey: keyPairEcdsa.privateKey!,
         // Bip32 public key is compressed, so we need to uncompress it by getting the public key from the private key
-        publicKey: secp.getPublicKey(keyPairEcdsa.privateKey!),
+        publicKey: secp.getPublicKey(Uint8Array.from(keyPairEcdsa.privateKey!)),
     }
 
     const preparedData = ethers.utils.arrayify(
@@ -106,7 +106,7 @@ export async function signUsingMnemonic(
     )
     const [signature, recoveryId] = await secp.sign(
         preparedData,
-        keyPair.privateKey,
+        Uint8Array.from(keyPair.privateKey),
         {
             canonical: true,
             recovered: true,
@@ -134,10 +134,10 @@ export async function signUsingLocalMnemonic(
     const privateKeyEd25519 = keyPairEd25519.secretKey.subarray(0, 32)
 
     const keyPairEcdsa = BIP32Factory(ecc)
-        .fromSeed(Uint8Array.from(seed))
+        .fromSeed(Buffer.from(seed))
         .derivePath(path)
     const privateKeyEcdsa = keyPairEcdsa.privateKey!
-    const publicKeyEcdsa = secp.getPublicKey(privateKeyEcdsa)
+    const publicKeyEcdsa = secp.getPublicKey(Uint8Array.from(privateKeyEcdsa))
 
     const [signature, recoveryId] = await secp.sign(data, privateKeyEd25519, {
         canonical: true,
