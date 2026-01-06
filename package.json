@@ -52,7 +52,6 @@
         "@solana/web3.js": "1.95.8",
         "@ton/core": "^0.59.1",
         "@layerzerolabs/lz-serdes": "3.0.151"
-
     },
     "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^4.0.0",
