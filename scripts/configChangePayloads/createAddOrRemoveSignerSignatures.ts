@@ -6,7 +6,6 @@ import { AwsKmsKey } from './kms'
 import {
     AwsSecretInfo,
     Mnemonic,
-    SignatureType,
     signUsingLocalMnemonic,
 } from './mnemonicSigner'
 import {
