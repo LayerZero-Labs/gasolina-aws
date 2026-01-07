@@ -121,12 +121,12 @@ const main = async () => {
             } else {
                 const mnemonics: Mnemonic[] = require(`./data/mnemonic.json`)
                 signatures = await Promise.all(
-                    mnemonics.map(
-                        async (mnemonic) =>
-                            await signUsingLocalMnemonic(
-                                mnemonic,
-                                hexToUint8Array(hash),
-                            ),
+                    mnemonics.map((mnemonic) =>
+                        signUsingLocalMnemonic(
+                            chainName,
+                            mnemonic,
+                            hexToUint8Array(hash),
+                        ),
                     ),
                 )
             }
@@ -139,9 +139,14 @@ const main = async () => {
 
             let outputCallData: any
             if (
-                ['aptos', 'initia', 'movement', 'ton', 'sui'].includes(
-                    chainName,
-                )
+                [
+                    'aptos',
+                    'initia',
+                    'movement',
+                    'ton',
+                    'sui',
+                    'starknet',
+                ].includes(chainName)
             ) {
                 outputCallData = {
                     signerAddress,

@@ -4,11 +4,9 @@ import {
 } from '@aws-sdk/client-secrets-manager'
 import { BIP32Factory } from 'bip32'
 import * as bip39 from 'bip39'
-import { derivePath } from 'ed25519-hd-key'
 import { ethers } from 'ethers'
 import { ExtendedBuffer } from 'extended-buffer'
 import * as ecc from 'tiny-secp256k1'
-import nacl from 'tweetnacl'
 
 import * as secp from '@noble/secp256k1'
 import { Secp256k1PublicKey } from '@mysten/sui/keypairs/secp256k1'
@@ -122,34 +120,39 @@ export async function signUsingMnemonic(
     }
 }
 
+function getAddressForChain(chainName: string, publicKey: Uint8Array): string {
+    if (chainName === 'starknet') {
+        // Starknet DVN stores signers as EthAddress (Ethereum addresses)
+        return walletAddressFromPublicKey(publicKey)
+    }
+    if (chainName === 'sui') {
+        return getSuiMoveWalletAddress(publicKey)
+    }
+    throw new Error(`Unsupported chain name: ${chainName}`)
+}
+
 export async function signUsingLocalMnemonic(
+    chainName: string,
     secretInfo: Mnemonic,
     data: Uint8Array,
 ) {
-    const mnemonic = secretInfo.mnemonic
-    const path = secretInfo.path
-    const seed = await bip39.mnemonicToSeed(mnemonic)
-    const keySeed = derivePath(path, seed.toString('hex'))
-    const keyPairEd25519 = nacl.sign.keyPair.fromSeed(keySeed.key as Uint8Array)
-    const privateKeyEd25519 = keyPairEd25519.secretKey.subarray(0, 32)
-
-    const keyPairEcdsa = BIP32Factory(ecc)
+    const seed = await bip39.mnemonicToSeed(secretInfo.mnemonic)
+    const keyPair = BIP32Factory(ecc)
         .fromSeed(Buffer.from(seed))
-        .derivePath(path)
-    const privateKeyEcdsa = keyPairEcdsa.privateKey!
-    const publicKeyEcdsa = secp.getPublicKey(Uint8Array.from(privateKeyEcdsa))
+        .derivePath(secretInfo.path)
+    const privateKey = keyPair.privateKey!
+    const publicKey = secp.getPublicKey(Uint8Array.from(privateKey))
 
-    const [signature, recoveryId] = await secp.sign(data, privateKeyEd25519, {
-        canonical: true,
-        recovered: true,
-        der: false,
-    })
-    const transformedRecoveryId = recoveryIdTransformationEcdsa(recoveryId)
+    const [signature, recoveryId] = await secp.sign(
+        data,
+        Uint8Array.from(privateKey),
+        { canonical: true, recovered: true, der: false },
+    )
 
     return {
         signature: bytesToHexPrefixed(
-            joinSignature(signature, transformedRecoveryId),
+            joinSignature(signature, recoveryIdTransformationEcdsa(recoveryId)),
         ),
-        address: getSuiMoveWalletAddress(publicKeyEcdsa),
+        address: getAddressForChain(chainName, publicKey),
     }
 }

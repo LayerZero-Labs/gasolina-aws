@@ -5,6 +5,7 @@ import BN from 'bn.js'
 import * as base58 from 'bs58'
 import { ethers } from 'ethers'
 import { ExtendedBuffer } from 'extended-buffer'
+import { selector as starknetSelector } from 'starknet'
 
 import {
     Chain,
@@ -27,6 +28,14 @@ import { AwsKmsKey, getAwsKmsSigners, signUsingAwsKmsClinet } from './kms'
 import { AwsSecretInfo, signUsingMnemonic } from './mnemonicSigner'
 import { getImplementationContract, getTonProvider } from './tonUtils'
 
+// Starknet call data type for structured encoding
+export interface StarknetCallData {
+    functionName: 'set_signer' | 'set_threshold'
+    signerAddress?: string // For set_signer
+    active?: boolean // For set_signer
+    threshold?: number // For set_threshold
+}
+
 export interface Signature {
     signature: string
     address: string
@@ -34,7 +43,11 @@ export interface Signature {
 
 export function getVId(chainName: string, environment: string): string {
     // By convention the vid is always the endpointV1 chainId
-    if (['solana', 'ton', 'initia', 'movement', 'sui'].includes(chainName)) {
+    if (
+        ['solana', 'ton', 'initia', 'movement', 'sui', 'starknet'].includes(
+            chainName,
+        )
+    ) {
         const eid = chainAndStageToEndpointId(
             chainName as Chain,
             environment as Stage,
@@ -85,6 +98,101 @@ export function getFunctionSignatureHash(funcName: string): string {
     ).slice(0, 8)
 }
 
+/**
+ * Calculate the Starknet selector for a function name using starknet.js.
+ * Returns the selector as a hex string (with 0x prefix).
+ */
+export function getStarknetFunctionSelector(funcName: string): string {
+    return starknetSelector.getSelectorFromName(funcName)
+}
+
+/**
+ * Encode a value as a felt252 (32 bytes, big-endian).
+ * felt252 is a value < 2^251, stored as 32 bytes.
+ */
+function encodeFelt252(value: string | bigint | number): Buffer {
+    const bigValue = typeof value === 'string' ? BigInt(value) : BigInt(value)
+    const hex = bigValue.toString(16).padStart(64, '0')
+    return Buffer.from(hex, 'hex')
+}
+
+/**
+ * Encode a u32 as 4 bytes big-endian.
+ */
+function encodeU32(value: number): Buffer {
+    return new BN(value).toArrayLike(Buffer, 'be', 4)
+}
+
+/**
+ * Encode a u256 as 32 bytes big-endian.
+ */
+function encodeU256(value: bigint | number | string): Buffer {
+    const bigValue = typeof value === 'string' ? BigInt(value) : BigInt(value)
+    const hex = bigValue.toString(16).padStart(64, '0')
+    return Buffer.from(hex, 'hex')
+}
+
+/**
+ * Hash call data for Starknet following the exact format of the DVN contract.
+ * Format: keccak256(vid || to || expiration || selector || calldata)
+ * Where:
+ *   - vid: u32 (4 bytes, big-endian)
+ *   - to: felt252 (32 bytes)
+ *   - expiration: u256 (32 bytes)
+ *   - selector: felt252 (32 bytes)
+ *   - calldata: array of felt252 (32 bytes each)
+ */
+function hashStarknetCallData(
+    target: string,
+    vid: string,
+    expiration: number,
+    starknetCallData: StarknetCallData,
+): string {
+    const encoded = new ExtendedBuffer()
+
+    // vid: 4 bytes big-endian
+    encoded.writeBuffer(encodeU32(parseInt(vid)))
+
+    // to: felt252 (32 bytes) - the DVN contract address
+    encoded.writeBuffer(encodeFelt252(target))
+
+    // expiration: u256 (32 bytes)
+    encoded.writeBuffer(encodeU256(expiration))
+
+    if (starknetCallData.functionName === 'set_signer') {
+        // Get selector using starknet.js
+        const selector = getStarknetFunctionSelector('set_signer')
+        encoded.writeBuffer(encodeFelt252(selector))
+
+        // calldata[0]: signer address as EthAddress (felt252)
+        // EthAddress is 20 bytes, but stored as felt252 (32 bytes)
+        if (!starknetCallData.signerAddress) {
+            throw new Error('signerAddress is required for set_signer')
+        }
+        encoded.writeBuffer(encodeFelt252(starknetCallData.signerAddress))
+
+        // calldata[1]: active as bool (felt252: 0 or 1)
+        const active = starknetCallData.active ? 1 : 0
+        encoded.writeBuffer(encodeFelt252(active))
+    } else if (starknetCallData.functionName === 'set_threshold') {
+        // Get selector using starknet.js
+        const selector = getStarknetFunctionSelector('set_threshold')
+        encoded.writeBuffer(encodeFelt252(selector))
+
+        // calldata[0]: threshold as u32 (but stored as felt252)
+        if (starknetCallData.threshold === undefined) {
+            throw new Error('threshold is required for set_threshold')
+        }
+        encoded.writeBuffer(encodeFelt252(starknetCallData.threshold))
+    } else {
+        throw new Error(
+            `Unknown Starknet function: ${starknetCallData.functionName}`,
+        )
+    }
+
+    return bytesToHex(sha3.keccak_256(Uint8Array.from(encoded.buffer)))
+}
+
 export async function hashCallData(
     target: string,
     vId: string,
@@ -105,6 +213,10 @@ export async function hashCallData(
         const [digestBytes] =
             DVNProgram.types.executeTransactionDigestBeet.serialize(digest)
         return bytesToHex(sha3.keccak_256(Uint8Array.from(digestBytes)))
+    } else if (chainName == 'starknet') {
+        // For Starknet, callData is a JSON-encoded StarknetCallData
+        const starknetCallData: StarknetCallData = JSON.parse(callData)
+        return hashStarknetCallData(target, vId, expiration, starknetCallData)
     } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(Buffer.from(stringToUint8Array(callData)))
@@ -134,7 +246,17 @@ export async function getKmsSignatures(
     hash: string,
     chainName: string,
 ): Promise<Signature[]> {
-    if (['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(chainName)) {
+    if (
+        [
+            'solana',
+            'aptos',
+            'initia',
+            'movement',
+            'ton',
+            'sui',
+            'starknet',
+        ].includes(chainName)
+    ) {
         return await Promise.all(
             keyIds.map(async (keyId) => signUsingAwsKmsClinet(keyId, hash)),
         )
@@ -156,7 +278,11 @@ export async function getMnemonicSignatures(
     hash: string,
     chainName: string,
 ): Promise<Signature[]> {
-    if (['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(chainName)) {
+    if (
+        ['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(
+            chainName,
+        )
+    ) {
         throw new Error(
             'Mnemonic signatures are not supported for non-EVM chains',
         )
@@ -175,10 +301,22 @@ export function getSignaturesPayload(
     chainName: string,
 ): string | string[] | Signature[] {
     if (chainName == 'solana') {
-        // For solana, we need to return an array of signatures
+        // For solana, we need to return an array of signatures (no sorting required)
         return signatures.slice(0, quorum).map((s: Signature) => s.signature)
+    } else if (chainName == 'starknet') {
+        // For Starknet, signatures must be sorted by signer address (ascending)
+        // The address here should be the Ethereum address of the signer
+        const sortedSignatures = [...signatures].sort((a, b) => {
+            // Compare addresses as BigInts to handle hex comparison correctly
+            const addrA = BigInt(a.address)
+            const addrB = BigInt(b.address)
+            return addrA < addrB ? -1 : addrA > addrB ? 1 : 0
+        })
+        return sortedSignatures
+            .slice(0, quorum)
+            .map((s: Signature) => s.signature)
     } else if (chainName == 'ton') {
-        // For ton, we need to have signatrues associated with their respective address
+        // For ton, we need to have signatures associated with their respective address
         return signatures
     } else {
         signatures.sort((a: Signature, b: Signature) =>
@@ -216,6 +354,13 @@ export async function getSetQuorumCallData(
         const dvnProgram = new DVNProgram.DVN(dvnProgramId)
         const instruction = dvnProgram.createSetQuorumInstruction(newQuorum)
         return bytesToHex(Uint8Array.from(instruction.data))
+    } else if (chainName == 'starknet') {
+        // For Starknet, return JSON-encoded StarknetCallData for proper hash calculation
+        const starknetCallData: StarknetCallData = {
+            functionName: 'set_threshold',
+            threshold: newQuorum,
+        }
+        return JSON.stringify(starknetCallData)
     } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
@@ -276,6 +421,14 @@ export async function getAddOrRemoveSignerCallData(
         }
         const instruction = dvnProgram.createSetSignersInstruction(newSigners)
         return bytesToHex(Uint8Array.from(instruction.data))
+    } else if (chainName == 'starknet') {
+        // For Starknet, return JSON-encoded StarknetCallData for proper hash calculation
+        const starknetCallData: StarknetCallData = {
+            functionName: 'set_signer',
+            signerAddress,
+            active,
+        }
+        return JSON.stringify(starknetCallData)
     } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
