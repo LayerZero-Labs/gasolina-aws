@@ -12,6 +12,8 @@ import * as secp from '@noble/secp256k1'
 import { Secp256k1PublicKey } from '@mysten/sui/keypairs/secp256k1'
 
 import { bytesToHexPrefixed, hexToUint8Array } from './utils'
+import nacl from 'tweetnacl'
+import { derivePath } from 'ed25519-hd-key'
 
 export interface Mnemonic {
     mnemonic: string
@@ -136,23 +138,30 @@ export async function signUsingLocalMnemonic(
     secretInfo: Mnemonic,
     data: Uint8Array,
 ) {
-    const seed = await bip39.mnemonicToSeed(secretInfo.mnemonic)
-    const keyPair = BIP32Factory(ecc)
-        .fromSeed(Buffer.from(seed))
-        .derivePath(secretInfo.path)
-    const privateKey = keyPair.privateKey!
-    const publicKey = secp.getPublicKey(Uint8Array.from(privateKey))
+    const mnemonic = secretInfo.mnemonic
+    const path = secretInfo.path
+    const seed = await bip39.mnemonicToSeed(mnemonic)
+    const keySeed = derivePath(path, seed.toString('hex'))
+    const keyPairEd25519 = nacl.sign.keyPair.fromSeed(keySeed.key as Uint8Array)
+    const privateKeyEd25519 = keyPairEd25519.secretKey.subarray(0, 32)
 
-    const [signature, recoveryId] = await secp.sign(
-        data,
-        Uint8Array.from(privateKey),
-        { canonical: true, recovered: true, der: false },
-    )
+    const keyPairEcdsa = BIP32Factory(ecc)
+        .fromSeed(Buffer.from(seed))
+        .derivePath(path)
+    const privateKeyEcdsa = keyPairEcdsa.privateKey!
+    const publicKeyEcdsa = secp.getPublicKey(Uint8Array.from(privateKeyEcdsa))
+
+    const [signature, recoveryId] = await secp.sign(data, privateKeyEd25519, {
+        canonical: true,
+        recovered: true,
+        der: false,
+    })
+    const transformedRecoveryId = recoveryIdTransformationEcdsa(recoveryId)
 
     return {
         signature: bytesToHexPrefixed(
-            joinSignature(signature, recoveryIdTransformationEcdsa(recoveryId)),
+            joinSignature(signature, transformedRecoveryId),
         ),
-        address: getAddressForChain(chainName, publicKey),
+        address: getAddressForChain(chainName, publicKeyEcdsa),
     }
 }
