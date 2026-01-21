@@ -47,7 +47,7 @@ const args = parse({
     },
     signerAddress: {
         type: String,
-        description: 'public address of the signer',
+        description: 'public address of the signer for EVM chains, publicKey for non-EVM chains',
     },
     shouldRevoke: {
         type: Number, // Not a boolean to make it required in the command line, so users be explicit about it
@@ -154,11 +154,14 @@ const main = async () => {
                         shouldRevoke: shouldRevoke === 1,
                     }
                 } else {
-                    throw new Error(`For ${chainName}, signerAddress must be 'publicKey' in gasolina response: hex string starting with '0x' followed by 128 hex characters (130 total)`)
+                    throw new Error(`For ${chainName}, use 'publicKey' from gasolina response as signerAddress: hex string starting with '0x' followed by 128 hex characters (130 total)`)
                 }
             } else {
-
-                outputCallData = callData
+                if (signerAddress.startsWith('0x') && signerAddress.length === 42) {
+                    outputCallData = callData
+                } else {
+                    throw new Error(`For ${chainName}, use 'address' from gasolina response as signerAddress: hex string starting with '0x' followed by 40 hex characters (42 total)`)
+                }
             }
 
             results[chainName] = {
