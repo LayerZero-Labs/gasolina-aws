@@ -47,7 +47,7 @@ const args = parse({
     },
     signerAddress: {
         type: String,
-        description: 'publicKey of the signer for move-based chains, public address for other chains',
+        description: 'public key of the signer for move-based chains, public address for other chains',
     },
     shouldRevoke: {
         type: Number, // Not a boolean to make it required in the command line, so users be explicit about it
