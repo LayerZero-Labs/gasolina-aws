@@ -44,7 +44,7 @@ export interface Signature {
 export function getVId(chainName: string, environment: string): string {
     // By convention the vid is always the endpointV1 chainId
     if (
-        ['solana', 'ton', 'initia', 'movement', 'sui', 'starknet'].includes(
+        ['solana', 'ton', 'initia', 'iotal1', 'movement', 'sui', 'starknet'].includes(
             chainName,
         )
     ) {
@@ -217,7 +217,7 @@ export async function hashCallData(
         // For Starknet, callData is a JSON-encoded StarknetCallData
         const starknetCallData: StarknetCallData = JSON.parse(callData)
         return hashStarknetCallData(target, vId, expiration, starknetCallData)
-    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'iotal1', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(Buffer.from(stringToUint8Array(callData)))
         encoded_data.writeBuffer(
@@ -251,6 +251,7 @@ export async function getKmsSignatures(
             'solana',
             'aptos',
             'initia',
+            'iotal1',
             'movement',
             'ton',
             'sui',
@@ -279,7 +280,7 @@ export async function getMnemonicSignatures(
     chainName: string,
 ): Promise<Signature[]> {
     if (
-        ['solana', 'aptos', 'initia', 'movement', 'ton', 'sui'].includes(
+        ['solana', 'aptos', 'initia', 'iotal1', 'movement', 'ton', 'sui'].includes(
             chainName,
         )
     ) {
@@ -361,7 +362,7 @@ export async function getSetQuorumCallData(
             threshold: newQuorum,
         }
         return JSON.stringify(starknetCallData)
-    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'iotal1', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
             Buffer.from(
@@ -429,7 +430,7 @@ export async function getAddOrRemoveSignerCallData(
             active,
         }
         return JSON.stringify(starknetCallData)
-    } else if (['aptos', 'initia', 'movement', 'sui'].includes(chainName)) {
+    } else if (['aptos', 'initia', 'iotal1', 'movement', 'sui'].includes(chainName)) {
         const encoded_data = new ExtendedBuffer()
         encoded_data.writeBuffer(
             Buffer.from(

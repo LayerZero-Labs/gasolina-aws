@@ -47,7 +47,7 @@ const args = parse({
     },
     signerAddress: {
         type: String,
-        description: 'public address of the signer',
+        description: 'publicKey of the signer for move-based chains, public address for other chains',
     },
     shouldRevoke: {
         type: Number, // Not a boolean to make it required in the command line, so users be explicit about it
@@ -78,7 +78,7 @@ const main = async () => {
         kmsOrMnemonicSigner !== 'mnemonic' &&
         kmsOrMnemonicSigner !== 'local'
     ) {
-        throw new Error('kmsOrMnemonicSigner must be kms or mnemonic')
+        throw new Error('kmsOrMnemonicSigner must be kms, mnemonic or local')
     }
 
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
@@ -141,6 +141,7 @@ const main = async () => {
             if (
                 [
                     'aptos',
+                    'iotal1',
                     'initia',
                     'movement',
                     'ton',
