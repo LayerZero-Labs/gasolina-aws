@@ -78,7 +78,7 @@ const main = async () => {
         kmsOrMnemonicSigner !== 'mnemonic' &&
         kmsOrMnemonicSigner !== 'local'
     ) {
-        throw new Error('kmsOrMnemonicSigner must be kms or mnemonic')
+        throw new Error('kmsOrMnemonicSigner must be kms, mnemonic or local')
     }
 
     const dvnAddresses = require(`./data/dvn-addresses-${environment}.json`)
@@ -148,11 +148,16 @@ const main = async () => {
                     'starknet',
                 ].includes(chainName)
             ) {
-                outputCallData = {
-                    signerAddress,
-                    shouldRevoke: shouldRevoke === 1,
+                if (signerAddress.startsWith('0x') && signerAddress.length === 130) {
+                    outputCallData = {
+                        signerAddress,
+                        shouldRevoke: shouldRevoke === 1,
+                    }
+                } else {
+                    throw new Error(`For ${chainName}, signerAddress must be 'publicKey' in gasolina response: hex string starting with '0x' followed by 128 hex characters (130 total)`)
                 }
             } else {
+
                 outputCallData = callData
             }
 
