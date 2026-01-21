@@ -141,6 +141,7 @@ const main = async () => {
             if (
                 [
                     'aptos',
+                    'iotal1',
                     'initia',
                     'movement',
                     'ton',
