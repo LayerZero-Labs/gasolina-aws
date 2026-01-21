@@ -42,7 +42,7 @@ cdk bootstrap
     -   Configure the AWS account number for the key of the object.
     -   `projectName`: Your unique project name (this is used for your s3 bucket which needs to be globally unique on AWS)
     -   `environment`: The environment your API will be pointing to on layerzero (mainnet/testnet)
-    -   `availableChainNames`: The chains your Gasolina app supports in comma seperated format e.g. `ethereum,bsc,avalanche`
+    -   `availableChainNames`: The chains your Gasolina app supports in comma separated format e.g. `ethereum,bsc,avalanche`
     -   `signerType`: Either `MNEMONIC` if you are using mnemonics stored in secret manager or `KMS` if you want CDK to set up asymmetric keys backed by HSM for you and register these keys into the Gasolina app.
         -   If `MNEMONIC`, the number of signers registered will be based on your wallet definitions in `walletConfig/<environment>.json`
         -   If `KMS`, you can optionally set `kmsNumOfSigners` in CONFIG. This value will create and register multiple keys into the same api
